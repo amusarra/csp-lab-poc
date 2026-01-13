@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Quarkus CSP Demo</title>
+</head>
+<body>
+<h1>CSP: DOM-based XSS - test ridotto</h1>
+
+<p>Esempio di hash da usare nella barra: <code>#&lt;img src=x onerror=alert("XSS")&gt;</code></p>
+
+<section>
+    <h2>Vulnerabile (innerHTML)</h2>
+    <div id="vuln" style="border:1px solid #ccc;padding:8px;">contenuto riflesso qui</div>
+</section>
+
+<section>
+    <h2>Sicuro (textContent)</h2>
+    <div id="safe" style="border:1px solid #ccc;padding:8px;"></div>
+</section>
+
+<script>
+    (function () {
+      // prende il payload dall'hash (es: #<img src=x onerror=alert("XSS")>)
+      var payload = decodeURIComponent(location.hash.slice(1) || '');
+
+      // VULNERABILE: inserisce HTML direttamente -> può causare DOM-based XSS
+      document.getElementById('vuln').innerHTML = payload;
+
+      // SICURO: inserisce come testo, nessuna esecuzione di codice
+      document.getElementById('safe').textContent = payload;
+    })();
+</script>
+
+</body>
+</html>
