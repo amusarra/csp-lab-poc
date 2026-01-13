@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Quarkus CSP Demo</title>
+</head>
+
+<body>
+<h1>CSP - Security Demo</h1>
+<p>Se la CSP funziona, lo script a seguire non verrà eseguito.</p>
+
+<code>
+    alert("XSS Attacco riuscito! Se vedi questo, la CSP è fallita.");
+</code>
+
+<script>
+    window.addEventListener('load', function () {
+        // due requestAnimationFrame garantiscono l'esecuzione dopo il paint
+        requestAnimationFrame(function () {
+            requestAnimationFrame(function () {
+                alert("XSS Attacco riuscito! Se vedi questo, la CSP è fallita.");
+            });
+        });
+    });
+</script>
+
+</body>
+</html>
