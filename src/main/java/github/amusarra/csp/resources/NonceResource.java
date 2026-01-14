@@ -10,23 +10,39 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
+import org.jboss.logging.Logger;
 
 @Path("nonce")
 public class NonceResource {
-  @Inject
-  @Location("nonce-index.html")
-  Template nonceIndex;
+  private static final Logger LOGGER = Logger.getLogger(NonceResource.class);
+
+  private final Template nonceIndex;
 
   @Context
   ContainerRequestContext requestContext;
 
+  @Inject
+  public NonceResource(@Location("nonce-index.html") Template nonceIndex) {
+    this.nonceIndex = nonceIndex;
+  }
+
   @GET
   @Produces(MediaType.TEXT_HTML)
   public TemplateInstance get() {
-    // Recuperiamo il nonce che il nostro CspFilter ha messo nella richiesta
-    String nonce = (String) requestContext.getProperty("csp-nonce");
+    // Recuperiamo il nonce che il nostro CspFilter (da implementare) dovrebbe mettere nella richiesta
+    String nonce = null;
+    Object val = requestContext.getProperty("csp-nonce");
+    if (val instanceof String s) {
+      nonce = s;
+    }
 
-    // Passiamo il nonce al template Qute
+    if (nonce == null) {
+      // fallback: nonce vuoto per evitare di rompere il template durante lo sviluppo
+      nonce = "";
+      LOGGER.warn("csp-nonce non trovato nella request; assicurati che CspFilter imposti la proprietà prima del rendering.");
+    }
+
+    // Passiamo il nonce al template Qute (anche se vuoto)
     return nonceIndex.data("nonce", nonce);
   }
 }
