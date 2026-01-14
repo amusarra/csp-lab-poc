@@ -37,7 +37,7 @@ public class CspFilter implements ContainerRequestFilter, ContainerResponseFilte
     // Aggiunta di font-src per autorizzare fonts embedded (data:) e risorse self/https
     String policy = "default-src 'self'; " +
                     "script-src 'self' 'nonce-" + nonce + "' 'strict-dynamic' https:; " +
-                    "style-src 'self' https:; " +
+                    "style-src 'self' 'nonce-" + nonce + "' https:; " +
                     "font-src 'self' data: https:; " +
                     "img-src 'self' data:; " +
                     "report-uri /csp-report; " +
