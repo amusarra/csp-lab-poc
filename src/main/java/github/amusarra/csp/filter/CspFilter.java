@@ -40,6 +40,7 @@ public class CspFilter implements ContainerRequestFilter, ContainerResponseFilte
                     "style-src 'self' https:; " +
                     "font-src 'self' data: https:; " +
                     "img-src 'self' data:; " +
+                    "report-uri /csp-report; " +
                     "connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; upgrade-insecure-requests;";
 
     responseContext.getHeaders().putSingle("Content-Security-Policy", policy);
