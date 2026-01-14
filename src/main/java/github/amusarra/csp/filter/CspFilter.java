@@ -14,24 +14,26 @@ import java.util.UUID;
 @Priority(Priorities.HEADER_DECORATOR)
 public class CspFilter implements ContainerRequestFilter, ContainerResponseFilter {
 
+  private static final String NONCE_ATTR = "csp-nonce";
+
   @Override
-  public void filter(ContainerRequestContext requestContext) throws IOException {
+  public void filter(ContainerRequestContext requestContext) {
     // Generiamo il nonce già nella fase di request, così è disponibile per il template
     String nonce = UUID.randomUUID().toString().replace("-", "");
-    requestContext.setProperty("csp-nonce", nonce);
+    requestContext.setProperty(NONCE_ATTR, nonce);
   }
 
   @Override
   public void filter(ContainerRequestContext requestContext,
                      ContainerResponseContext responseContext) {
     // Recuperiamo il nonce impostato nella request (fallback se mancante)
-    String nonce = (String) requestContext.getProperty("csp-nonce");
+    String nonce = (String) requestContext.getProperty(NONCE_ATTR);
     if (nonce == null) {
       nonce = UUID.randomUUID().toString().replace("-", "");
     }
 
     // Lo passiamo alla richiesta per poterlo usare nell'HTML (opzionale)
-    requestContext.setProperty("csp-nonce", nonce);
+    requestContext.setProperty(NONCE_ATTR, nonce);
 
     // Impostiamo l'header con il nonce
     // Aggiunta di font-src per autorizzare fonts embedded (data:) e risorse self/https
