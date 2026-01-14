@@ -3,12 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <title>Quarkus CSP Demo con Qute</title>
+    <!-- Preload del font: copia i file woff/woff2 in src/main/resources/META-INF/resources/fonts/ -->
+    <link rel="preload" href="/fonts/awsone.woff2" as="font" type="font/woff2" crossorigin>
+    <style nonce="{nonce}">
+        @font-face {
+            font-family: 'AWSone';
+            src: url('/fonts/awsone.woff2') format('woff2'),
+                 url('/fonts/awsone.woff') format('woff');
+            font-weight: 100 900;
+            font-style: normal;
+            font-display: swap;
+        }
+
+        body {
+            font-family: 'AWSone', system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+    </style>
 </head>
 <body>
 <h1>Security Demo con Qute</h1>
 <p>Il Nonce generato per questa sessione è: <strong>{nonce}</strong></p>
 
-<script nonce="{nonce}">
+<script>
     console.log("Script legittimo eseguito con nonce: {nonce}");
 </script>
 
