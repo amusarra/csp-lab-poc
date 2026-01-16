@@ -18,13 +18,13 @@ import org.jboss.logging.Logger;
  * Report-Only) sulle risposte HTTP. Genera un nonce per ogni richiesta e lo rende
  * disponibile nella ContainerRequestContext (proprietà "csp-nonce") e tramite
  * l'header di debug "X-CSP-Nonce".
- *
+ * <p>
  * La behavior è configurabile tramite le property:
  * - csp.filter.report-only (boolean): usa Content-Security-Policy-Report-Only se true.
  * - csp.filter.override (boolean): se false non sovrascrive header CSP già presenti.
  * - csp.filter.report-uri (String): URI di report per la direttiva report-uri.
  * - csp.filter.default-policy (String, opzionale): policy predefinita che può contenere
- *   il placeholder {nonce} che verrà sostituito con il nonce generato.
+ * il placeholder {nonce} che verrà sostituito con il nonce generato.
  */
 @IfBuildProperty(name = "csp.filter.enabled", stringValue = "true")
 @Provider
@@ -57,7 +57,7 @@ public class CspFilter implements ContainerRequestFilter, ContainerResponseFilte
   /**
    * Genera un nonce unico per la richiesta e lo memorizza nella
    * ContainerRequestContext sotto la proprietà "csp-nonce".
-   *
+   * <p>
    * Questo metodo viene invocato all'inizio dell'elaborazione della request,
    * in modo che template o risorse possano recuperare il nonce per includerlo
    * in script/style inline autorizzati.
@@ -75,12 +75,12 @@ public class CspFilter implements ContainerRequestFilter, ContainerResponseFilte
    * Applica (o imposta) l'header Content-Security-Policy sulla response.
    * Se è presente la property default-policy, la usa (sostituendo {nonce}),
    * altrimenti costruisce una policy di default che include il nonce generato.
-   *
+   * <p>
    * Se è impostato reportOnly=true viene usato l'header
    * Content-Security-Policy-Report-Only; se overrideExisting=false non
    * sovrascrive header CSP già presenti.
    *
-   * @param requestContext contesto della richiesta (contiene il nonce)
+   * @param requestContext  contesto della richiesta (contiene il nonce)
    * @param responseContext contesto della risposta dove viene impostato l'header CSP
    */
   @Override
@@ -111,6 +111,25 @@ public class CspFilter implements ContainerRequestFilter, ContainerResponseFilte
     // Usiamo una sola policy: preferiamo la defaultPolicy se definita, altrimenti costruiamo la policy dinamica
     String defaultPolicy = defaultPolicyProp.filter(s -> !s.isBlank()).orElse(null);
 
+    final String policy = getPolicy(defaultPolicy, nonce);
+
+    String headerName =
+        reportOnly ? "Content-Security-Policy-Report-Only" : "Content-Security-Policy";
+
+    responseContext.getHeaders().putSingle(headerName, policy);
+    LOG.debug("Impostata CSP (" + headerName + ") con policy: " + policy);
+  }
+
+  /**
+   * Restituisce la policy CSP da usare, sostituendo il placeholder {nonce}
+   * se è definita una defaultPolicy; altrimenti costruisce una policy
+   * di default che include il nonce generato.
+   *
+   * @param defaultPolicy policy predefinita (può essere null)
+   * @param nonce         nonce generato per la richiesta
+   * @return policy CSP completa da usare nell'header
+   */
+  private String getPolicy(String defaultPolicy, String nonce) {
     String policy;
     if (defaultPolicy != null) {
       policy = defaultPolicy.replace("{nonce}", nonce);
@@ -124,11 +143,6 @@ public class CspFilter implements ContainerRequestFilter, ContainerResponseFilte
                "connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; upgrade-insecure-requests; " +
                "report-uri " + reportUri + ";";
     }
-
-    String headerName =
-        reportOnly ? "Content-Security-Policy-Report-Only" : "Content-Security-Policy";
-
-    responseContext.getHeaders().putSingle(headerName, policy);
-    LOG.debug("Impostata CSP (" + headerName + ") con policy: " + policy);
+    return policy;
   }
 }
