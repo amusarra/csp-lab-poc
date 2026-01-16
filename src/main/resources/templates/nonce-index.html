@@ -24,11 +24,21 @@
 <h1>Security Demo con Qute</h1>
 <p>Il Nonce generato per questa sessione è: <strong>{nonce}</strong></p>
 
-<script>
-    console.log("Script legittimo eseguito con nonce: {nonce}");
+<!-- Script legittimo con nonce - dovrebbe essere eseguito quando la policy lo permette -->
+<script nonce="{nonce}">
+    window.addEventListener('load', function () {
+        // eseguiamo dopo il paint per essere sicuri che il DOM sia renderizzato
+        requestAnimationFrame(function () {
+            requestAnimationFrame(function () {
+                console.log("Script legittimo eseguito con nonce: {nonce}");
+            });
+        });
+    });
 </script>
 
+<!-- Script senza nonce: in presenza di una CSP corretta questo verrà bloccato -->
 <script>
+    // script dimostrativo che dovrebbe essere bloccato da CSP se policy non permette 'unsafe-inline'
     alert("XSS Attacco! Se vedi questo, la CSP non sta bloccando gli script inline non autorizzati.");
 </script>
 </body>

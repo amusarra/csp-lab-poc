@@ -31,9 +31,13 @@ public class NonceResource {
   public TemplateInstance get() {
     // Recuperiamo il nonce che il nostro CspFilter (da implementare) dovrebbe mettere nella richiesta
     String nonce = null;
-    Object val = requestContext.getProperty("csp-nonce");
-    if (val instanceof String s) {
-      nonce = s;
+    if (requestContext != null) {
+      Object val = requestContext.getProperty("csp-nonce");
+      if (val instanceof String s) {
+        nonce = s;
+      }
+    } else {
+      LOGGER.warn("ContainerRequestContext non disponibile nel resource; impossibile leggere il nonce dalla request.");
     }
 
     if (nonce == null) {
