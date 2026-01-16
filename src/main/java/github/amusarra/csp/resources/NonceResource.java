@@ -12,8 +12,16 @@ import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import org.jboss.logging.Logger;
 
+/**
+ * Resource che fornisce una pagina HTML (template Qute) alla route /nonce.
+ * Recupera il nonce generato dal CspFilter dalla ContainerRequestContext
+ * e lo passa al template per l'uso in script/style inline autorizzati.
+ */
 @Path("nonce")
 public class NonceResource {
+  /**
+   * Logger di classe.
+   */
   private static final Logger LOGGER = Logger.getLogger(NonceResource.class);
 
   private final Template nonceIndex;
@@ -21,11 +29,23 @@ public class NonceResource {
   @Context
   ContainerRequestContext requestContext;
 
+  /**
+   * Costruttore che riceve il template Qute per la pagina nonce-index.
+   *
+   * @param nonceIndex template Qute corrispondente a nonce-index.html
+   */
   @Inject
   public NonceResource(@Location("nonce-index.html") Template nonceIndex) {
     this.nonceIndex = nonceIndex;
   }
 
+  /**
+   * Restituisce il TemplateInstance per la pagina HTML, passando il valore
+   * della proprietà "csp-nonce" prelevata dalla request. Se il nonce non è
+   * presente viene passato un valore vuoto come fallback.
+   *
+   * @return TemplateInstance con la variabile "nonce" impostata
+   */
   @GET
   @Produces(MediaType.TEXT_HTML)
   public TemplateInstance get() {

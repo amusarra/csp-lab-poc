@@ -13,12 +13,32 @@ import java.util.UUID;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
 
+/**
+ * Filter JAX-RS che imposta l'header Content-Security-Policy (o la sua variante
+ * Report-Only) sulle risposte HTTP. Genera un nonce per ogni richiesta e lo rende
+ * disponibile nella ContainerRequestContext (proprietà "csp-nonce") e tramite
+ * l'header di debug "X-CSP-Nonce".
+ *
+ * La behavior è configurabile tramite le property:
+ * - csp.filter.report-only (boolean): usa Content-Security-Policy-Report-Only se true.
+ * - csp.filter.override (boolean): se false non sovrascrive header CSP già presenti.
+ * - csp.filter.report-uri (String): URI di report per la direttiva report-uri.
+ * - csp.filter.default-policy (String, opzionale): policy predefinita che può contenere
+ *   il placeholder {nonce} che verrà sostituito con il nonce generato.
+ */
 @IfBuildProperty(name = "csp.filter.enabled", stringValue = "true")
 @Provider
 @Priority(Priorities.HEADER_DECORATOR)
 public class CspFilter implements ContainerRequestFilter, ContainerResponseFilter {
 
+  /**
+   * Logger della classe.
+   */
   private static final Logger LOG = Logger.getLogger(CspFilter.class);
+
+  /**
+   * Nome della proprietà nella request dove viene memorizzato il nonce.
+   */
   private static final String NONCE_ATTR = "csp-nonce";
 
   @ConfigProperty(name = "csp.filter.report-only", defaultValue = "false")
@@ -34,6 +54,16 @@ public class CspFilter implements ContainerRequestFilter, ContainerResponseFilte
   @ConfigProperty(name = "csp.filter.default-policy")
   Optional<String> defaultPolicyProp;
 
+  /**
+   * Genera un nonce unico per la richiesta e lo memorizza nella
+   * ContainerRequestContext sotto la proprietà "csp-nonce".
+   *
+   * Questo metodo viene invocato all'inizio dell'elaborazione della request,
+   * in modo che template o risorse possano recuperare il nonce per includerlo
+   * in script/style inline autorizzati.
+   *
+   * @param requestContext contesto della richiesta corrente
+   */
   @Override
   public void filter(ContainerRequestContext requestContext) {
     // Generiamo il nonce già nella fase di request, così è disponibile per il template
@@ -41,6 +71,18 @@ public class CspFilter implements ContainerRequestFilter, ContainerResponseFilte
     requestContext.setProperty(NONCE_ATTR, nonce);
   }
 
+  /**
+   * Applica (o imposta) l'header Content-Security-Policy sulla response.
+   * Se è presente la property default-policy, la usa (sostituendo {nonce}),
+   * altrimenti costruisce una policy di default che include il nonce generato.
+   *
+   * Se è impostato reportOnly=true viene usato l'header
+   * Content-Security-Policy-Report-Only; se overrideExisting=false non
+   * sovrascrive header CSP già presenti.
+   *
+   * @param requestContext contesto della richiesta (contiene il nonce)
+   * @param responseContext contesto della risposta dove viene impostato l'header CSP
+   */
   @Override
   public void filter(ContainerRequestContext requestContext,
                      ContainerResponseContext responseContext) {
