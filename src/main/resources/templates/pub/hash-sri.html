@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Quarkus CSP Demo con Qute</title>
+
+    <!-- Esempio di uso della Subresource Integrity (SRI) nel contesto della CSP
+         per caricare in sicurezza risorse esterne come librerie JS/CSS da CDN.
+         In questo esempio carichiamo Bootstrap CSS da jsDelivr con SRI.
+
+         Nota: assicurarsi di aggiornare l'hash SRI ogni volta che si aggiorna la versione della libreria.
+
+         L'hash può essere calcolato usando il comando a seguire (richiede openssl e curl):
+
+         curl -s https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js | openssl dgst -sha384 -binary | openssl base64 -A
+    -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+
+    <!-- Script con hash SRI corretto - dovrebbe essere caricato ed eseguito -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
+            crossorigin="anonymous"></script>
+
+    <!-- Script con hash SRI errato - dovrebbe essere bloccato dal browser; CSP qualora
+         presente rafforza la sicurezza sul controllo delle origini delle risorse.
+     -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+            crossorigin="anonymous">
+    </script>
+
+</head>
+<body>
+<h1>Security Demo con esempio di Subresource Integrity </h1>
+<p>Verificare da DevTools che una risorsa con hash errato viene bloccata (network + console).</p>
+</body>
+</html>
