@@ -1,0 +1,40 @@
+services:
+  quarkus-app:
+    container_name: quarkus-app
+    build:
+      context: ../../..
+      dockerfile: src/main/docker/Dockerfile.jvm
+    image: csp-lab-app:local
+    ports:
+      - "8081:8080" # espone l'app sul 8081 per bypassare nginx locale
+    environment:
+      - QUARKUS_HTTP_HOST=0.0.0.0
+    networks:
+      - backend
+  reverse-proxy:
+    image: nginx:1.29.4
+    container_name: reverse-proxy
+    ports:
+      - "8080:80"
+    environment:
+      - CSP_VALUE=default-src 'self'; script-src 'self'; object-src 'none';
+      # Importante: diciamo a Nginx di sostituire SOLO la nostra variabile
+      - NGINX_ENVSUBST_FILTER=CSP_VALUE
+    volumes:
+      # 1. Montiamo il template (assicurarsi che il nome file locale sia questo)
+      - ./nginx/templates/app-proxy.conf.template:/etc/nginx/templates/app-proxy.conf.template:ro
+
+      # 2. Montiamo un volume vuoto sulla cartella conf.d
+      # Questo evita l'uso del default.conf
+      - v_nginx_conf:/etc/nginx/conf.d
+    depends_on:
+      - quarkus-app
+    networks:
+      - backend
+
+networks:
+  backend:
+    driver: bridge
+
+volumes:
+  v_nginx_conf:
