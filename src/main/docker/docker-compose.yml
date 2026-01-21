@@ -1,3 +1,22 @@
+# Documento: docker-compose per ambiente di sviluppo con un reverse proxy nginx
+# Scopo:
+#   - Avvia l'app Quarkus (quarkus-app) e un reverse-proxy nginx che fa da frontend.
+#   - La configurazione nginx viene fornita come template montato e usa variabili
+#     d'ambiente per impostare la Content-Security-Policy (CSP).
+#
+# Variabili importanti:
+#   - CSP_VALUE: la direttiva CSP completa (es. "default-src 'self'; script-src 'self' 'nonce-...';")
+#       * Assicurarsi che la stringa sia correttamente quotata e termini con ';' se necessario.
+#   - NGINX_ENVSUBST_FILTER: limita le variabili che il template engine dell'immagine nginx
+#       sostituirà (utile per evitare sostituzioni accidentali).
+#
+# Note operative:
+#   - L'immagine nginx utilizzata (>= 1.19) supporta la substitution delle env nel percorso
+#     /etc/nginx/templates quando usata come template; qui si monta il template e si fornisce
+#     NGINX_ENVSUBST_FILTER per sicurezza.
+#   - Si monta un volume vuoto su /etc/nginx/conf.d per evitare che venga usato un default.conf indesiderato.
+#   - La porta 8080 del host è mappata a 80 del container nginx; l'app è esposta su 8081 per debugging.
+#
 services:
   quarkus-app:
     container_name: quarkus-app

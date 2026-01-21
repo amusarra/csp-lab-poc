@@ -1,3 +1,23 @@
+# Template nginx per il reverse-proxy dell'app.
+# Questo file è pensato per essere montato come template e sottoposto a substitution
+# dall'immagine ufficiale nginx (usando NGINX_ENVSUBST_FILTER per limitare le variabili
+# sostituite). Viene quindi letto come configurazione server normale.
+#
+# Note importanti sull'uso delle variabili:
+#   - La variabile principale è ${CSP_VALUE} (definita nel docker-compose).
+#   - Assicurarsi che CSP_VALUE sia correttamente quotata nella compose per preservare
+#     spazi e caratteri speciali. Esempio:
+#       - CSP_VALUE=default-src 'self'; script-src 'self' 'nonce-abc123';
+#   - Se la policy contiene caratteri che potrebbero essere interpretati dalla shell,
+#     preferire l'uso di doppi/singoli apici appropriati nella compose.
+#   - NGINX_ENVSUBST_FILTER può limitare la sostituzione a questa variabile specifica,
+#     evitando sostituzioni involontarie in altri punti della config.
+#
+# Raccomandazioni CSP:
+#   - Preferire l'uso di nonce o hash per script inline piuttosto che permettere 'unsafe-inline'.
+#   - Verificare che la stringa termini con ';' se si concatenano più direttive.
+#   - Quando si debuggano policy, usare browser devtools per leggere l'header effettivo.
+#
 server {
     listen 80;
     server_name localhost;
