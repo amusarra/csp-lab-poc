@@ -13,7 +13,6 @@ on:
       - develop
     paths:
       - 'src/main/docs/slides/**'
-  workflow_dispatch:
 
 jobs:
   build-presentation:
