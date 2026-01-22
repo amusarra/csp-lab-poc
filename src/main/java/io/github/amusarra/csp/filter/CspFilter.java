@@ -1,4 +1,4 @@
-package github.amusarra.csp.filter;
+package io.github.amusarra.csp.filter;
 
 import io.quarkus.arc.properties.IfBuildProperty;
 import jakarta.annotation.Priority;

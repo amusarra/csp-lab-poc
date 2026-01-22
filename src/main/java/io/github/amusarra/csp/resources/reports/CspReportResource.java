@@ -1,4 +1,4 @@
-package github.amusarra.csp.resources.reports;
+package io.github.amusarra.csp.resources.reports;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;

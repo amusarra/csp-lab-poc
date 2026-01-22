@@ -1,4 +1,4 @@
-package github.amusarra.csp.resources;
+package io.github.amusarra.csp.resources;
 
 import io.quarkus.qute.Location;
 import io.quarkus.qute.Template;
