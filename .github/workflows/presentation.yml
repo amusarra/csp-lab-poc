@@ -1,0 +1,63 @@
+name: Generate Presentation
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+    paths:
+      - 'src/main/docs/slides/**'
+  pull_request:
+    branches:
+      - main
+      - develop
+    paths:
+      - 'src/main/docs/slides/**'
+  workflow_dispatch:
+
+jobs:
+  build-presentation:
+    name: Build Presentation (HTML & PDF)
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install Marp CLI
+        run: npm install -g @marp-team/marp-cli
+      
+      - name: Generate HTML
+        run: |
+          marp src/main/docs/slides/content-security-policy-modern-web-apps.md \
+            --html \
+            --allow-local-files \
+            -o dist/content-security-policy-modern-web-apps.html
+      
+      - name: Generate PDF
+        run: |
+          marp src/main/docs/slides/content-security-policy-modern-web-apps.md \
+            --html \
+            --allow-local-files \
+            --pdf \
+            -o dist/content-security-policy-modern-web-apps.pdf
+      
+      - name: Upload HTML artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: presentation-html
+          path: dist/content-security-policy-modern-web-apps.html
+          retention-days: 30
+      
+      - name: Upload PDF artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: presentation-pdf
+          path: dist/content-security-policy-modern-web-apps.pdf
+          retention-days: 30
