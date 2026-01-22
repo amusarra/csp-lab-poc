@@ -1,0 +1,8 @@
+flowchart TD
+  A[Inline cambia per richiesta/utente?] -->|Sì| B[Nonce + 'strict-dynamic']
+  A -->|No| C[Snippet inline stabile/versionato?]
+  C -->|Sì| D[Hash 'sha256-...']
+  C -->|No| E[Evita inline -> file esterni + SRI]
+
+  classDef ok fill:#E8F5E9,stroke:#2E7D32,stroke-width:1px,color:#1B5E20;
+  class B,D,E ok;
