@@ -3,7 +3,7 @@ title: 'Content Security Policy (CSP) in Modern Web Apps'
 description: 'Introduzione a Content Security Policy (CSP) per la difesa XSS in applicazioni web moderne, con PoC in Quarkus.'
 author: 'Antonio Musarra - Software Engineer @ Sogei'
 header: 'Content Security Policy in Modern Web Apps'
-footer: 'Sicurezza Applicativa & DevSecOps'
+footer: 'Antonio Musarra @ Sogei | Sicurezza Applicativa & DevSecOps'
 keywords: 'Content Security Policy, CSP, XSS, Quarkus, Web Security, Nonce, Hash, Strict-Dynamic'
 lang: it
 marp: true
@@ -79,16 +79,6 @@ _class: compact
   - Preferisci CSP; continua a fare escaping/sanitizzazione lato server e client.
   - Disabilita esplicitamente il filtro legacy dove presente: `X-XSS-Protection: 0`.
 
-Esempio confronto header:
-
-```http
-# CSP (enforce)
-Content-Security-Policy: default-src 'self'; script-src 'self' 'nonce-{nonce}' 'strict-dynamic' https:; frame-ancestors 'none'; base-uri 'self'
-
-# Disabilita filtro legacy per user agent che ancora lo onorano
-X-XSS-Protection: 0
-```
-
 ---
 
 ## Direttive principali (panoramica)
@@ -121,6 +111,10 @@ Suggerimento: mostra in DevTools il blocco di uno script inline senza nonce per 
 ---
 
 ## `script-src` in dettaglio
+
+<!--
+_class: compact
+-->
 
 - **Nonce**: Generato per richiesta, es. `'nonce-AbCd...'`; consenti solo script con quel attributo.
 - **Hash**: `'sha256-...'` su contenuto inline deterministico.
@@ -233,7 +227,7 @@ Note (relatore – SRI):
 ## Baseline CSP per SPA (Single Page Application) con CDN
 
 - **Scenario**: App SPA con asset su CDN.
-- **Policy**:
+- **Policy**: la seguente policy è un esempio bilanciato per SPA moderne che usano CDN per script/stili/immagini, con nonce per script inline legittimi e `strict-dynamic` per script caricati dinamicamente.
 
 ```csp
 Content-Security-Policy: default-src 'self'; \
@@ -279,7 +273,7 @@ Note (relatore):
 
 ## Duplicati e multilivello: come si comporta il browser
 
-- **Header duplicati (più `Content-Security-Policy`)**: ogni header è una policy separata e il browser le applica tutte. L’effetto è l’**intersezione** (vince la più restrittiva). Non “vince l’ultimo”.
+- **Header duplicati (più `Content-Security-Policy`)**: ogni header è una policy separata e il browser le applica tutte. L’effetto è l’**intersezione** (vince la più restrittiva). Non "vince l’ultimo".
 - **Direttive duplicate nello stesso header**: i browser conformi considerano la prima occorrenza della direttiva e ignorano le successive.
 - **`Report-Only`**: non applica blocchi, ma registra violazioni. Più header `-Report-Only` generano più report.
 - **Edge che riscrive header**: se proxy/reverse proxy usa "set" può sovrascrivere l’header dell’app e quindi eliminare la policy a valle. Usa modalità "append/add" quando vuoi cumulare.
@@ -327,16 +321,24 @@ _class: compact
   - Evita di impostare `script-src`/`style-src` sia via proprietà che via filtro sulla **stessa rotta**.
   - Se vuoi tenere baseline a proprietà e dinamiche a filtro, limita le proprietà con `.path` a rotte statiche e lascia che il filtro faccia `putSingle` per sostituire l’header sull’app.
 
+---
+
+## Quarkus: esempi di configurazione CSP
+
+A seguire alcuni esempi di configurazione CSP via `application.properties`.
+- In `dev`, usiamo `Content-Security-Policy-Report-Only` per osservare violazioni senza bloccare, applicata a tutte le rotte (`path=/*`).
+- In `prod`, definiamo una baseline statica con `Content-Security-Policy` su un prefisso di path (`/static/*`), includendo direttive fisse come `upgrade-insecure-requests`.
+
 Esempi `application.properties`:
 
 ```properties
 # Profilo dev: osserva violazioni senza bloccare
 %dev.quarkus.http.header."Content-Security-Policy-Report-Only".value=default-src 'self'; frame-ancestors 'none'; base-uri 'self'
-%dev.quarkus.http.header."Content-Security-Policy-Report-Only".path=/
+%dev.quarkus.http.header."Content-Security-Policy-Report-Only".path=/*
 
 # Profilo prod: baseline statica su un prefisso di path
 %prod.quarkus.http.header."Content-Security-Policy".value=default-src 'self'; frame-ancestors 'none'; base-uri 'self'; upgrade-insecure-requests
-%prod.quarkus.http.header."Content-Security-Policy".path=/static
+%prod.quarkus.http.header."Content-Security-Policy".path=/static/*
 ```
 
 <!--
@@ -348,7 +350,7 @@ Note (relatore):
 
 ---
 
-## PoC Quarkus: impostare l’header CSP
+## Quarkus: impostare l’header CSP
 
 - **Obiettivo**: generare un `nonce` per ogni richiesta e applicarlo nella direttiva `script-src` con `'strict-dynamic'`.
 - **Vantaggi**: blocca script inline non autorizzati, riduce whitelist di host, supporta script caricati dinamicamente.
@@ -413,7 +415,7 @@ Note (relatore):
 -->
 ---
 
-## PoC Quarkus: usare il `nonce` nel template
+## Quarkus: usare il `nonce` nel template
 
 ```html
 <script nonce="{nonce}">
