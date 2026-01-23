@@ -24,6 +24,7 @@
 - [Testing e Debugging](#-testing-e-debugging)
 - [Risorse](#-risorse)
 - [Licenza](#-licenza)
+- [Appendice - Presentazione](#-appendice---presentazione)
 
 ## 🎯 Introduzione
 
@@ -823,6 +824,98 @@ I contributi sono benvenuti! Per contribuire:
 3. Commit delle modifiche (`git commit -m 'Add some AmazingFeature'`)
 4. Push del branch (`git push origin feature/AmazingFeature`)
 5. Apri una Pull Request
+
+---
+
+## 📊 Appendice - Presentazione
+
+Il progetto include una presentazione completa su Content Security Policy realizzata con [Marp](https://marp.app/), disponibile in [src/main/docs/slides/content-security-policy-modern-web-apps.md](src/main/docs/slides/content-security-policy-modern-web-apps.md).
+
+### Prerequisiti
+
+```bash
+# Installa Marp CLI globalmente
+npm install -g @marp-team/marp-cli
+
+# Oppure usa npx (senza installazione globale)
+npx @marp-team/marp-cli --version
+```
+
+### Visualizzare la presentazione
+
+#### Opzione 1: Server locale con live reload
+
+```bash
+# Avvia il server Marp con preview in tempo reale
+marp -s src/main/docs/slides/
+
+# Server disponibile su http://localhost:8080
+# Il browser si aggiorna automaticamente ad ogni modifica
+```
+
+#### Opzione 2: Generare HTML statico
+
+```bash
+# Genera HTML della presentazione
+marp src/main/docs/slides/content-security-policy-modern-web-apps.md \
+  --html \
+  --allow-local-files \
+  -o presentation.html
+
+# Apri il file generato nel browser
+open presentation.html  # macOS
+xdg-open presentation.html  # Linux
+```
+
+#### Opzione 3: Generare PDF
+
+```bash
+# Genera PDF della presentazione
+marp src/main/docs/slides/content-security-policy-modern-web-apps.md \
+  --html \
+  --allow-local-files \
+  --pdf \
+  -o presentation.pdf
+
+# Visualizza il PDF
+open presentation.pdf  # macOS
+xdg-open presentation.pdf  # Linux
+```
+
+#### Opzione 4: Generare PPTX (PowerPoint)
+
+```bash
+# Genera PPTX della presentazione
+marp src/main/docs/slides/content-security-policy-modern-web-apps.md \
+  --html \
+  --allow-local-files \
+  --pptx \
+  -o presentation.pptx
+```
+
+### Presentazione pubblicata su GitHub Pages
+
+La presentazione viene automaticamente pubblicata su GitHub Pages ad ogni push sul branch `main`. Puoi accedervi all'URL:
+
+🔗 **https://amusarra.github.io/csp-lab-poc/content-security-policy-modern-web-apps.html**
+
+> **Nota**: La generazione automatica è gestita dalla GitHub Action [.github/workflows/presentation.yml](.github/workflows/presentation.yml)
+
+### Contenuto della presentazione
+
+La presentazione copre:
+
+- ✅ Introduzione alla Content Security Policy (CSP)
+- ✅ Direttive principali e loro utilizzo (`script-src`, `style-src`, `frame-ancestors`, ecc.)
+- ✅ Strategie di deployment (Application, Gateway, Reverse Proxy)
+- ✅ Nonce vs Hash: decision tree e quando usare cosa
+- ✅ Subresource Integrity (SRI) e best practices
+- ✅ PoC completa con Quarkus (filtro CSP, template, nonce)
+- ✅ Testing, debugging e strumenti (CSP Evaluator, DevTools, Report-URI)
+- ✅ Rollout sicuro: da Report-Only a Enforce
+- ✅ Errori comuni e raccomandazioni
+
+---
 
 ## 📄 Licenza
 
