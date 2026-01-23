@@ -362,7 +362,7 @@ _class: compact
 -->
 
 ```java
-package github.amusarra.csp.filter;
+package io.github.amusarra.csp.filter;
 
 @Provider
 @Priority(Priorities.HEADER_DECORATOR)
@@ -494,3 +494,20 @@ Note (relatore):
 ## Q&A
 
 Domande e discussione
+
+---
+
+![bg right:40% w:300](https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=https://github.com/amusarra/csp-lab-poc)
+
+## Grazie per l'attenzione! 🙏
+
+### **Antonio Musarra**
+
+*Software Engineer @ Sogei*
+*Technical Writer/Blogger*
+
+🐙 [github.com/amusarra](https://github.com/amusarra)
+💼 [linkedin.com/in/amusarra](https://linkedin.com/in/amusarra)
+
+**Repository del progetto della PoC**
+https://github.com/amusarra/csp-lab-poc
