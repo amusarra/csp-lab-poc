@@ -34,6 +34,22 @@ style: |
 
 ---
 
+## Una storia vera (anonimizzata)
+
+**Black Friday - 23 novembre 2019, ore 22:30**
+
+Un grande e-commerce europeo di elettronica scopre un attacco XSS nel modulo di ricerca del sito.
+
+- **17.500+ credenziali** rubate tramite keylogger JS iniettato
+- Script malevolo attivo per **6 ore** durante il picco pre-Black Friday
+- Dati compromessi: email, password, indirizzi, carte di credito
+- Perdite stimate: **€2.8M** (sanzioni GDPR + risarcimenti + reputazione)
+- **Causa**: mancanza di CSP e sanitizzazione input utente
+
+> _"Un singolo header CSP avrebbe bloccato l'attacco."_
+
+---
+
 ## Agenda
 
 - **Introduzione CSP**
