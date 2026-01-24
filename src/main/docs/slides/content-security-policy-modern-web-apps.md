@@ -11,6 +11,7 @@ theme: default
 backgroundColor: #fff
 backgroundImage: url('https://marp.app/assets/hero-background.svg')
 paginate: true
+transition: fade
 size: 16:9
 style: |
   /* Helpers per dimensioni testo per singole slide */
