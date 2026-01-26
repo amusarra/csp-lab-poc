@@ -47,6 +47,13 @@ jobs:
       - name: Install Marp CLI
         run: npm install -g @marp-team/marp-cli
       
+      - name: Create dist directory
+        run: mkdir -p dist
+      
+      - name: Copy resources (images)
+        run: |
+          cp -r src/main/docs/slides/resources dist/
+      
       - name: Generate HTML
         run: |
           marp src/main/docs/slides/content-security-policy-modern-web-apps.md \
@@ -66,7 +73,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: presentation-html
-          path: dist/content-security-policy-modern-web-apps.html
+          path: |
+            dist/content-security-policy-modern-web-apps.html
+            dist/resources/**
           retention-days: 30
       
       - name: Upload PDF artifact
