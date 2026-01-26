@@ -28,7 +28,7 @@ style: |
   }
 ---
 
-![bg left:40% 80%](https://www.sogei.it/content/dam/sogei/loghi/Sogei_arancio.svg)
+![bg left:40% 80%](resources/images/logo_sogei_arancio_1.svg)
 
 # Content Security Policy (CSP) in Modern Web Apps
 
