@@ -1,6 +1,5 @@
 # CSP Lab - Content Security Policy in Modern Web Apps
 
-
 [![Quarkus](https://img.shields.io/badge/Quarkus-3.30.5-blue.svg)](https://quarkus.io/)
 [![Java](https://img.shields.io/badge/Java-21-orange.svg)](https://openjdk.org/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE.md)
@@ -12,11 +11,11 @@
 ## 📑 Indice
 
 - [Introduzione](#-introduzione)
-- [Cos'è la CSP](#-cosè-la-csp)
-- [Architettura del Progetto](#-architettura-del-progetto)
+- [Cos'è la CSP](#%EF%B8%8F-cosè-la-csp)
+- [Architettura del Progetto](#%EF%B8%8F-architettura-del-progetto)
 - [Prerequisiti](#-prerequisiti)
 - [Struttura del Progetto](#-struttura-del-progetto)
-- [Configurazione](#-configurazione)
+- [Configurazione](#%EF%B8%8F-configurazione)
 - [Compilazione](#-compilazione)
 - [Esecuzione](#-esecuzione)
 - [Deployment con Docker Compose](#-deployment-con-docker-compose)
@@ -121,6 +120,7 @@ flowchart TB
 #### 1. CspFilter
 
 Filtro JAX-RS che:
+
 - Genera un **nonce unico** per ogni richiesta
 - Imposta l'header `Content-Security-Policy` (o `Content-Security-Policy-Report-Only`)
 - Supporta configurazione dinamica via `application.properties`
@@ -129,6 +129,7 @@ Filtro JAX-RS che:
 #### 2. NonceResource
 
 Endpoint REST che serve template HTML con nonce injection:
+
 - Route: `/nonce`
 - Recupera il nonce dalla `ContainerRequestContext`
 - Passa il nonce al template Qute per l'uso in script/style inline
@@ -136,6 +137,7 @@ Endpoint REST che serve template HTML con nonce injection:
 #### 3. CspReportResource
 
 Endpoint per ricevere report di violazioni CSP:
+
 - Route: `/csp-report`
 - Content-Type: `application/csp-report`
 - Logga le violazioni in formato pretty-print JSON
@@ -143,6 +145,7 @@ Endpoint per ricevere report di violazioni CSP:
 #### 4. Template Statici
 
 File HTML dimostrativi sotto `/pub`:
+
 - **no-csp.html**: Script inline bloccato da CSP
 - **dom-based-xss.html**: Esempio di DOM-based XSS e mitigazione
 - **hash-sri.html**: Subresource Integrity con Bootstrap CDN
@@ -324,8 +327,9 @@ podman build -f src/main/docker/Dockerfile.native -t csp-lab:native .
 ```
 
 L'applicazione sarà disponibile su:
-- **http://localhost:8080** - Applicazione principale
-- **http://localhost:8080/q/dev** - Dev UI (dashboard Quarkus)
+
+- **<http://localhost:8080>** - Applicazione principale
+- **<http://localhost:8080/q/dev>** - Dev UI (dashboard Quarkus)
 
 ### Modalità Production (JAR)
 
@@ -414,6 +418,7 @@ flowchart TB
 ```
 
 **Legenda connessioni:**
+
 - ━━━ **Linea continua**: Flusso HTTP principale
 - ┈┈┈ **Linea tratteggiata**: Connessione debug/network interno
 
@@ -454,8 +459,8 @@ add_header Content-Security-Policy "$CSP_VALUE" always;
 
 ### Accesso ai servizi
 
-- **Via Nginx (CSP multilivello)**: http://localhost:8080
-- **Diretto su Quarkus (bypass Nginx)**: http://localhost:8081
+- **Via Nginx (CSP multilivello)**: <http://localhost:8080>
+- **Diretto su Quarkus (bypass Nginx)**: <http://localhost:8081>
 
 ### Pattern consigliato multilivello
 
@@ -897,7 +902,7 @@ marp src/main/docs/slides/content-security-policy-modern-web-apps.md \
 
 La presentazione viene automaticamente pubblicata su GitHub Pages ad ogni push sul branch `main`. Puoi accedervi all'URL:
 
-🔗 **https://amusarra.github.io/csp-lab-poc/content-security-policy-modern-web-apps.html**
+🔗 **<https://amusarra.github.io/csp-lab-poc/content-security-policy-modern-web-apps.html>**
 
 > **Nota**: La generazione automatica è gestita dalla GitHub Action [.github/workflows/presentation.yml](.github/workflows/presentation.yml)
 
