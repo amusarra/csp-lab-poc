@@ -16,7 +16,9 @@ size: 16:9
 style: |
   /* Helpers per dimensioni testo per singole slide */
   section.compact { font-size: 150%; line-height: 1.25; }
-  
+  section.small { font-size: 120%; line-height: 1.3; }
+  section.tiny { font-size: 100%; line-height: 1.4; }
+
   /* Dimensione e centratura del diagramma */
   section img[src$="decision-tree-nonce-vs-hash.svg"] {
     width: 80%;
@@ -67,6 +69,10 @@ Note (relatore):
 
 ---
 
+<!--
+_class: compact
+-->
+
 ## Cos’è la CSP e perché conta
 
 - **Definizione**: Policy di sicurezza via header HTTP che limita le sorgenti di contenuti (script, stile, immagini, font, connessioni...).
@@ -74,6 +80,8 @@ Note (relatore):
 - **Funzionamento**: Il browser applica le direttive e blocca contenuti non conformi.
 - **Rollout sicuro**: Usa inizialmente `Content-Security-Policy-Report-Only` per osservare violazioni senza bloccare.
 - **Versioni & specifiche**: [CSP Level 2](https://www.w3.org/TR/CSP2/), [CSP Level 3](https://www.w3.org/TR/CSP3/), [Level 4 (Draft)](https://w3c.github.io/webappsec-csp/), panoramica su [MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy).
+
+![bg right:45% 80%](resources/images/cose-csp-overview_1.png)
 
 ---
 
@@ -182,6 +190,10 @@ Note (relatore - script-src):
 
 ---
 
+<!--
+_class: compact
+-->
+
 ## Subresource Integrity (SRI)
 
 - **Cos'è**: garantisce che asset esterni (script/stili) non siano stati manomessi. Il browser usa la risorsa solo se l'hash dichiarato nell'attributo `integrity` coincide con quello del contenuto scaricato.
@@ -190,6 +202,9 @@ Note (relatore - script-src):
 - **Nota compatibilità**: la direttiva CSP `require-sri-for` non è ampiamente supportata; applica SRI via build/pipeline invece di farlo imporre dalla CSP.
 
 > Il sito https://srihash.org/ può aiutarti a generare gli hash SRI per le tue risorse esterne.
+
+![bg right:40% 95%](resources/images/cose-sri-overview_1.png)
+
 ---
 
 ## Subresource Integrity (SRI) - esempi (1/2)
@@ -288,6 +303,10 @@ Note (relatore):
 
 ---
 
+<!--
+_class: compact
+-->
+
 ## Duplicati e multilivello: come si comporta il browser
 
 - **Header duplicati (più `Content-Security-Policy`)**: ogni header è una policy separata e il browser le applica tutte. L’effetto è l’**intersezione** (vince la più restrittiva). Non "vince l’ultimo".
@@ -295,12 +314,14 @@ Note (relatore):
 - **`Report-Only`**: non applica blocchi, ma registra violazioni. Più header `-Report-Only` generano più report.
 - **Edge che riscrive header**: se proxy/reverse proxy usa "set" può sovrascrivere l’header dell’app e quindi eliminare la policy a valle. Usa modalità "append/add" quando vuoi cumulare.
 
+![bg right:45% 100%](resources/images/architecture-diagram-csp-multilayer_0.png)
+
 ---
 
 ## Definire policy a più livelli senza conflitti
 
 <!--
-_class: compact
+_class: small
 -->
 
 - **Pattern consigliato**:
@@ -311,6 +332,8 @@ _class: compact
   - Edge/Gateway in `Report-Only`, App in `Enforce`, finché la policy non è stabilizzata.
   - Se l’edge deve applicare `script-src`, includi almeno `'nonce-*'`/`'sha256-*'` o una regola compatibile con il modello dell’app (quando supportato dal prodotto) e usa "append".
 - **Regola d’oro**: evita che più livelli impongano direttive dinamiche su `script-src`/`style-src`; centralizzale nell’app. Metti all’edge ciò che è invariabile.
+
+![bg right:50% 100%](resources/images/architecture-diagram-csp-multilayer_1.png)
 
 <!--
 Note (relatore):
@@ -376,53 +399,7 @@ Note (relatore):
 
 ---
 
-<!--
-_class: compact
--->
-
-```java
-package io.github.amusarra.csp.filter;
-
-@Provider
-@Priority(Priorities.HEADER_DECORATOR)
-public class CspFilter implements ContainerRequestFilter, ContainerResponseFilter {
-
-  @Override
-  public void filter(ContainerRequestContext requestContext) throws IOException {
-    // Generiamo il nonce già nella fase di request, così è disponibile per il template
-    String nonce = UUID.randomUUID().toString().replace("-", "");
-    requestContext.setProperty("csp-nonce", nonce);
-  }
-
-  @Override
-  public void filter(ContainerRequestContext requestContext,
-                     ContainerResponseContext responseContext) {
-    // Recuperiamo il nonce impostato nella request (fallback se mancante)
-    String nonce = (String) requestContext.getProperty("csp-nonce");
-    if (nonce == null) {
-      nonce = UUID.randomUUID().toString().replace("-", "");
-    }
-
-    // Lo passiamo alla richiesta per poterlo usare nell'HTML (opzionale)
-    requestContext.setProperty("csp-nonce", nonce);
-
-    // Impostiamo l'header con il nonce
-    // Aggiunta di font-src per autorizzare fonts embedded (data:) e risorse self/https
-    String policy = "default-src 'self'; " +
-                    "script-src 'self' 'nonce-" + nonce + "' 'strict-dynamic' https:; " +
-                    "style-src 'self' https:; " +
-                    "font-src 'self' data: https:; " +
-                    "img-src 'self' data:; " +
-                    "connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; upgrade-insecure-requests;";
-
-    responseContext.getHeaders().putSingle("Content-Security-Policy", policy);
-    // opzionale: modalità report-only in fase di tuning
-    // responseContext.getHeaders().putSingle("Content-Security-Policy-Report-Only", policy + " report-to default");
-    // Passa il nonce a template/front-end (es. via header custom o attributi request)
-    responseContext.getHeaders().putSingle("X-CSP-Nonce", nonce);
-  }
-}
-```
+![bg 90%](resources/images/quarkus-csp-nonce-filter_1.png)
 
 <!--
 Note (relatore):
@@ -446,6 +423,10 @@ Note (relatore):
 
 In Quarkus, inserisci `nonce` nel modello (Qute/Thymeleaf) recuperando il valore da `X-CSP-Nonce` o da uno `RequestScoped` bean.
 
+- il filtro CSP imposta l’header con il `nonce` generato;
+- il template usa `{nonce}` per autorizzare script inline legittimi.
+- il browser bloccherà il secondo script senza `nonce` o con `nonce` errato non corrispondente a quanto impostato nell’header CSP.
+
 ---
 
 ## Mitigazione XSS: impatto reale
@@ -461,9 +442,9 @@ In Quarkus, inserisci `nonce` nel modello (Qute/Thymeleaf) recuperando il valore
 
 - **DevTools**: Vedi violazioni nella console e nel pannello Security.
 - **CSP Evaluator (Google)**: Analizza policy, trova debolezze.
-- **securityheaders.com**: Verifica header di sicurezza in produzione.
+- **securityheaders.com**: Scansione pubblica per verificare il rating di sicurezza in produzione.
 - **Report-URI / Report-To**: Raccogli violazioni; monitora in tempo reale.
-- **Automazione**: `curl -I`, test E2E (Playwright), scansioni OWASP ZAP.
+- **Automazione**: `curl -I`, test E2E (Playwright), scansioni OWASP ZAP (per automazioni all'interno di CI/CD).
 
 ```bash
 # Verifica header
@@ -482,12 +463,18 @@ Note (relatore):
 
 ---
 
+<!--
+_class: compact
+-->
+
 ## Rollout sicuro (Report-Only → Enforce)
 
 1. **Definisci policy** iniziale e abilita `Report-Only` con endpoint di raccolta.
 2. **Osserva violazioni**, mappa sorgenti legittime, aggiorna policy.
 3. **Integra nonce/hash** dove necessario (script critici).
 4. **Passa a enforce** gradualmente, mantieni report attivi.
+
+![Rollout sicuro](resources/images/rollout-secure.png)
 
 ---
 
