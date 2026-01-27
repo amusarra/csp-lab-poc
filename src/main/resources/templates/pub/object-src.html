@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demo object-src - CSP Lab</title>
+</head>
+<body>
+<div class="container">
+    <header>
+        <h1>Demo: object-src Directive</h1>
+        <p class="subtitle">Blocca plugin legacy (Flash, &lt;object&gt;/&lt;embed&gt;)</p>
+    </header>
+
+    <nav>
+        <a href="/">← Torna alla Home</a>
+    </nav>
+
+    <main>
+        <section class="info-box">
+            <h2>📋 Cosa fa object-src?</h2>
+            <p>
+                La direttiva <code>object-src</code> controlla le sorgenti valide per i plugin legacy come
+                Flash, Java Applet e altri contenuti caricati tramite <code>&lt;object&gt;</code>,
+                <code>&lt;embed&gt;</code> e <code>&lt;applet&gt;</code>.
+            </p>
+            <p>
+                Impostando <code>object-src 'none'</code>, il browser blocca completamente il caricamento
+                di questi plugin, proteggendo da vulnerabilità associate a tecnologie obsolete.
+            </p>
+        </section>
+
+        <section class="demo-section">
+            <h2>🚫 Tentativo di Caricamento Plugin (Bloccato)</h2>
+
+            <div class="code-example">
+                <h3>Esempio 1: Flash Player tramite &lt;object&gt;</h3>
+                <p class="warning">⚠️ Questo elemento verrà bloccato dalla CSP</p>
+
+                <!-- Tentativo di caricare un oggetto Flash (verrà bloccato) -->
+                <object data="https://example.com/movie.swf" type="application/x-shockwave-flash"
+                        width="400" height="300">
+                    <param name="movie" value="https://example.com/movie.swf">
+                    Fallback: Il tuo browser non supporta Flash.
+                </object>
+
+                <pre><code>&lt;object data="https://example.com/movie.swf"
+        type="application/x-shockwave-flash"&gt;
+    &lt;param name="movie" value="https://example.com/movie.swf"&gt;
+&lt;/object&gt;</code></pre>
+            </div>
+
+            <div class="code-example">
+                <h3>Esempio 2: Plugin generico tramite &lt;embed&gt;</h3>
+                <p class="warning">⚠️ Questo elemento verrà bloccato dalla CSP</p>
+
+                <!-- Tentativo di embed (verrà bloccato) -->
+                <embed src="https://example.com/plugin.swf" type="application/x-shockwave-flash"
+                       width="400" height="300">
+
+                <pre><code>&lt;embed src="https://example.com/plugin.swf"
+       type="application/x-shockwave-flash"&gt;</code></pre>
+            </div>
+
+            <div class="code-example">
+                <h3>Esempio 3: Java Applet tramite &lt;applet&gt;</h3>
+                <p class="warning">⚠️ Questo elemento verrà bloccato dalla CSP</p>
+
+                <!-- Tentativo di applet Java (verrà bloccato) -->
+                <applet code="MyApplet.class" width="400" height="300">
+                    Fallback: Il tuo browser non supporta Java Applet.
+                </applet>
+
+                <pre><code>&lt;applet code="MyApplet.class" width="400" height="300"&gt;
+    Fallback: Il tuo browser non supporta Java Applet.
+&lt;/applet&gt;</code></pre>
+            </div>
+        </section>
+
+        <section class="info-box success">
+            <h2>✅ Policy CSP Applicata</h2>
+            <pre><code>Content-Security-Policy: object-src 'none'</code></pre>
+            <p>
+                <strong>Comportamento atteso:</strong> Il browser bloccherà tutti i tentativi di caricamento
+                dei plugin sopra e registrerà le violazioni nella console JavaScript.
+            </p>
+        </section>
+
+        <section class="info-box">
+            <h2>🔍 Come Verificare</h2>
+            <ol>
+                <li>Apri la Console del Browser (F12 → Console)</li>
+                <li>Cerca messaggi di errore CSP relativi a <code>object-src</code></li>
+                <li>Dovresti vedere violazioni simili a:
+                    <pre><code>Refused to load plugin data from '...' because it violates
+the following Content Security Policy directive: "object-src 'none'"</code></pre>
+                </li>
+                <li>Se configurato, controlla anche i report CSP inviati al server</li>
+            </ol>
+        </section>
+
+        <section class="info-box">
+            <h2>💡 Best Practices</h2>
+            <ul>
+                <li><strong>Usa sempre <code>object-src 'none'</code></strong> se non hai bisogno di plugin legacy</li>
+                <li>Flash, Java Applet e altri plugin sono obsoleti e presentano rischi di sicurezza</li>
+                <li>Per contenuti multimediali moderni, usa <code>&lt;video&gt;</code> e <code>&lt;audio&gt;</code></li>
+                <li>Se proprio necessario, specifica domini fidati: <code>object-src https://trusted.example.com</code></li>
+            </ul>
+        </section>
+    </main>
+
+    <footer>
+        <p>CSP Lab - Dimostrazione Content Security Policy</p>
+        <p><a href="/">Torna alla Home</a> | <a href="/reports">Vedi Report CSP</a></p>
+    </footer>
+</div>
+</body>
+</html>
