@@ -488,6 +488,10 @@ _class: compact
 
 ---
 
+![bg w:85% Infografica CSP](resources/images/infografica-csp_1.png)
+
+---
+
 ## Risorse
 
 - Spec: [MDN Web Docs - Content Security Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy)
