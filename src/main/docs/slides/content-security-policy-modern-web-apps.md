@@ -50,6 +50,16 @@ Un grande e-commerce europeo di elettronica scopre un attacco XSS nel modulo di 
 
 > _"Un singolo header CSP avrebbe bloccato l'attacco."_
 
+<!--
+Note (relatore – storia vera):
+- Obiettivo: catturare l'attenzione con un caso concreto e drammatico che dimostra l'impatto reale della mancanza di CSP.
+- Racconto (30 secondi): "È il 23 novembre 2019, ore 22:30. Siamo a poche ore dal Black Friday, il momento più critico per gli e-commerce. Un grande retailer europeo di elettronica scopre un attacco XSS nel modulo di ricerca del sito. Un attaccante era riuscito a iniettare uno script malevolo - un keylogger JavaScript - che ha registrato ogni tasto digitato dagli utenti per 6 ore consecutive, proprio durante il picco di traffico pre-Black Friday."
+- Impatto: "Il bilancio è devastante: oltre 17.500 credenziali compromesse - email, password, indirizzi, carte di credito. Le perdite economiche sono stimate in 2,8 milioni di euro tra sanzioni GDPR, risarcimenti ai clienti e danno reputazionale."
+- Punto chiave: "La causa? Assenza totale di Content Security Policy e mancata sanitizzazione dell'input utente. Un singolo header HTTP - Content-Security-Policy - avrebbe immediatamente bloccato l'esecuzione dello script malevolo, impedendo l'intero attacco."
+- Enfasi: pausa dopo la citazione finale per far riflettere l'audience sull'importanza della CSP.
+- Transizione: "Questa non è fantascienza, ma realtà. Vediamo ora come la CSP può proteggerci da scenari come questo."
+-->
+
 ---
 
 ## Agenda
@@ -83,6 +93,17 @@ _class: compact
 
 ![bg right:45% 80%](resources/images/cose-csp-overview_1.png)
 
+<!--
+Note (relatore – Cos'è la CSP):
+- Apertura: "Iniziamo dalle basi: cos'è esattamente la Content Security Policy e perché dovremmo preoccuparcene?"
+- Definizione: "La CSP è essenzialmente una policy di sicurezza che comunichiamo al browser tramite un header HTTP. Funziona come una whitelist: specifichiamo da quali sorgenti il browser può caricare e eseguire contenuti - script JavaScript, fogli di stile, immagini, font, connessioni WebSocket e altro ancora."
+- Obiettivo: "L'obiettivo principale è mitigare gli attacchi XSS - Cross-Site Scripting - che rappresentano ancora oggi una delle vulnerabilità più diffuse nelle applicazioni web. Ma non solo: la CSP ci protegge anche da clickjacking e data injection, riducendo drasticamente la superficie di attacco."
+- Funzionamento: "Il meccanismo è elegante nella sua semplicità: definiamo le regole lato server, il browser le applica in modo nativo. Se uno script non rispetta le direttive della policy - ad esempio proviene da un dominio non autorizzato o è inline senza nonce - il browser lo blocca immediatamente."
+- Rollout sicuro: "Un aspetto fondamentale per l'adozione: possiamo iniziare in modalità 'Report-Only', dove il browser non blocca nulla ma ci invia report sulle violazioni. Questo ci permette di osservare il comportamento reale dell'applicazione e perfezionare la policy prima di attivarla in modalità enforce."
+- Specifiche: "La CSP è uno standard in evoluzione. Oggi abbiamo Level 2 e 3 completamente supportati, Level 4 in draft. Vi consiglio di consultare le risorse MDN per i dettagli specifici."
+- Transizione: "Vediamo ora come si posiziona la CSP rispetto a meccanismi di sicurezza più datati."
+-->
+
 ---
 
 ## CSP vs `X-XSS-Protection`
@@ -103,6 +124,16 @@ _class: compact
 - **Raccomandazione**:
   - Preferisci CSP; continua a fare escaping/sanitizzazione lato server e client.
   - Disabilita esplicitamente il filtro legacy dove presente: `X-XSS-Protection: 0`.
+
+<!--
+Note (relatore – CSP vs X-XSS-Protection):
+- Contesto: "Molti di voi potrebbero aver sentito parlare dell'header X-XSS-Protection. È importante capire perché oggi dobbiamo preferire la CSP."
+- Differenza di scopo: "X-XSS-Protection era un tentativo dei browser di bloccare automaticamente reflected XSS rilevati nell'URL. Suona bene in teoria, ma in pratica aveva limiti enormi: copriva solo attacchi riflessi molto semplici, era facilmente bypassabile e - aspetto critico - poteva introdurre nuove vulnerabilità o causare malfunzionamenti dell'applicazione."
+- Stato attuale: "La realtà è che questo header è ormai deprecato. Chromium ed Edge l'hanno completamente rimosso, Firefox non l'ha mai implementato, Safari ha supporto parziale. È uno strumento del passato."
+- Superiorità della CSP: "La Content Security Policy invece è uno standard moderno, supportato universalmente, e offre un controllo granulare e affidabile. Non tenta di 'indovinare' gli attacchi - definisce regole precise su cosa è permesso e cosa no."
+- Raccomandazione pratica: "La strategia corretta oggi è: implementate una CSP solida, continuate a fare escaping e sanitizzazione corretta dell'input lato server - questi sono i fondamentali - e dove ancora presente X-XSS-Protection, disabilitatelo esplicitamente con valore 0 per evitare falsi positivi."
+- Transizione: "Ora che abbiamo chiarito il contesto, entriamo nel cuore della CSP: le sue direttive."
+-->
 
 ---
 
@@ -182,11 +213,30 @@ Note (relatore - script-src):
 - Vuoi ridurre whitelist host e script dinamici trusted? → **nonce** + `'strict-dynamic'`.
 - Puoi evitare inline? → Sposta in file esterni + **SRI** (Subresource Integrity); mantieni CSP più semplice.
 
+<!--
+Note (relatore – Decision tree):
+- Obiettivo: "Abbiamo parlato di nonce e hash, ma quando usare l'uno o l'altro? Questa slide vi fornisce un albero decisionale pratico."
+- Prima domanda: "Il vostro codice inline cambia per ogni richiesta o per utente? Pensate a contenuti personalizzati, token di sessione, dati dinamici. In questo caso, il nonce è la soluzione naturale: generate un valore random per ogni richiesta, lo includete nell'header CSP e negli attributi degli script legittimi."
+- Contenuti stabili: "Se invece il codice inline è stabile - stesso contenuto per tutti gli utenti, versionato - allora l'hash è più appropriato. Calcolate l'hash SHA-256 del contenuto in fase di build e lo dichiarate nella policy. Niente generazione runtime, perfetto per pagine statiche."
+- Cache e CDN: "Avete cache aggressive o CDN che servono pagine statiche? L'hash è ideale perché non richiede sincronizzazione di nonce tra richieste diverse."
+- Script dinamici: "Volete ridurre la whitelist di host e gestire script caricati dinamicamente in modo sicuro? Nonce combinato con 'strict-dynamic' è il pattern moderno consigliato."
+- Migliore pratica: "Ma ricordate: la soluzione più pulita è sempre evitare inline quando possibile. Spostate il codice in file esterni, versionate, applicate SRI e mantenete una CSP più semplice e manutenibile."
+- Transizione: "Vediamo ora questo decision tree rappresentato visivamente."
+-->
+
 ---
 
 ## Decision tree: nonce vs hash (diagramma)
 
 ![Decision tree: nonce vs hash](./resources/mermaid/decision-tree-nonce-vs-hash.svg)
+
+<!--
+Note (relatore – Diagramma decision tree):
+- Presentazione: "Ecco rappresentato graficamente il processo decisionale che abbiamo appena discusso. Questo diagramma può essere un riferimento rapido quando dovete decidere l'approccio da adottare per il vostro progetto."
+- Percorso visivo: "Seguite il flusso dall'alto: partite dalla natura del vostro contenuto inline, rispondete alle domande chiave - dinamico o statico, cache o no, necessità di script dinamici - e arrivate alla soluzione ottimale."
+- Pratico: "Vi consiglio di salvare questo schema come riferimento per il team. È particolarmente utile durante le code review o quando integrate nuove funzionalità che richiedono script inline."
+- Transizione: "Passiamo ora a un tema complementare ma altrettanto importante: la Subresource Integrity."
+-->
 
 ---
 
@@ -295,10 +345,14 @@ Scegli un solo punto di verità per ridurre conflitti.
 > Significa decidere dove viene generata e mantenuta la policy principale (applicazione o edge) e garantire che gli altri livelli non impongano direttive concorrenti.
 
 <!--
-Note (relatore):
-- Se Edge impone CSP, evita `script-src` dinamico lì; tienilo in app.
-- Ricorda: più header CSP si sommano (intersezione), non vince l’ultimo.
-- Esempio microfrontend: policy diverse per-app con nonce.
+Note (relatore – Dove impostare CSP):
+- Domanda chiave: "Una decisione architettturale importante: dove impostiamo fisicamente la CSP? Abbiamo tre opzioni principali, ognuna con pro e contro."
+- Applicazione: "Impostare la CSP direttamente nell'applicazione - nel nostro caso Quarkus - offre il massimo controllo. Potete generare nonce per ogni richiesta, adattare la policy in base al contesto utente, tenant o feature flag. È l'approccio più flessibile ma richiede che l'applicazione gestisca attivamente la sicurezza."
+- API Gateway: "L'API Gateway - Kong, 3Scale, Apigee - è ideale quando avete un'architettura a microservizi. Centralizzate la policy in un punto, evitate duplicazioni, garantite coerenza. Ottimo per direttive statiche comuni a tutti i servizi."
+- Reverse Proxy: "Nginx o Apache come reverse proxy offrono performance eccellenti con overhead minimo. Utile per separare le responsabilità ops/sicurezza dall'applicazione. Perfetto per policy statiche e globali."
+- Punto di verità: "La regola d'oro: scegliete UN solo punto di verità per la policy principale. Avere CSP definite a più livelli senza coordinazione porta a conflitti, debugging complessi e falsi positivi."
+- Single source: "Questo non significa che potete avere solo un livello - vedremo tra poco come gestire policy multilivello - ma che dovete avere chiaro quale livello 'possiede' quale parte della policy."
+- Transizione: "Approfondiamo proprio questo: come comportarsi quando la CSP è presente a più livelli."
 -->
 
 ---
@@ -315,6 +369,17 @@ _class: compact
 - **Edge che riscrive header**: se proxy/reverse proxy usa "set" può sovrascrivere l’header dell’app e quindi eliminare la policy a valle. Usa modalità "append/add" quando vuoi cumulare.
 
 ![bg right:45% 100%](resources/images/architecture-diagram-csp-multilayer_0.png)
+
+<!--
+Note (relatore – Duplicati e multilivello):
+- Premessa: "Questo è un aspetto critico che genera molta confusione: come si comporta il browser quando riceve più header CSP?"
+- Header multipli: "Se il browser riceve più header Content-Security-Policy separati - ad esempio uno dal reverse proxy e uno dall'applicazione - NON vince l'ultimo come molti pensano. Invece, il browser applica TUTTE le policy simultaneamente, usando l'intersezione. Vince sempre la più restrittiva. Se una policy consente solo 'self' per script-src e un'altra consente 'self' più un CDN, il risultato effettivo è solo 'self'."
+- Direttive duplicate: "All'interno dello stesso header, se una direttiva compare più volte, i browser conformi alle spec considerano solo la prima occorrenza e ignorano le successive."
+- Report-Only: "L'header Report-Only è utile per testing: non blocca nulla, ma invia violazioni. Potete avere contemporaneamente un header enforce e uno report-only. Anzi, è una strategia raccomandata durante il rollout."
+- Edge pericoloso: "Attenzione critica: se il reverse proxy o il gateway usa modalità 'set' o 'replace' per l'header, SOVRASCRIVE completamente l'header proveniente dall'applicazione. La policy dell'app viene persa. Usate sempre modalità 'append' o 'add' se volete composizione."
+- Diagramma: "L'immagine mostra un'architettura tipica con più livelli: browser, reverse proxy, applicazione. La CSP può essere definita in più punti, ma serve coordinazione."
+- Transizione: "Vediamo ora il pattern consigliato per gestire questa complessità."
+-->
 
 ---
 
@@ -336,10 +401,16 @@ _class: small
 ![bg right:50% 100%](resources/images/architecture-diagram-csp-multilayer_1.png)
 
 <!--
-Note (relatore):
-- Caso reale: Edge in Report-Only 2 settimane, poi enforce graduale.
-- Safari: verifica compatibilità di direttive avanzate, testa cross-browser.
-- Evita wildcard ampie (https:) senza strict-dynamic: rischio supply chain.
+Note (relatore – Policy multilivello):
+- Pattern consigliato: "Ecco la strategia che funziona nella pratica, testata su architetture enterprise complesse."
+- Separazione responsabilità: "Edge e Gateway gestiscono direttive STATICHE e globali: frame-ancestors per prevenire clickjacking, base-uri per bloccare abusi del tag base, upgrade-insecure-requests per forzare HTTPS. Queste sono policy che non cambiano per richiesta e valgono per tutta l'infrastruttura."
+- App dinamiche: "L'applicazione gestisce le direttive DINAMICHE: script-src e style-src con nonce generati per richiesta, connect-src specifico per gli endpoint API, img-src con eventuali data: URI necessari. Questo perché solo l'applicazione conosce il contesto runtime."
+- Motivazione tecnica: "Perché questa separazione? Semplice: l'edge non ha visibilità sul nonce generato dall'applicazione. Se l'edge impone script-src 'self' in enforce, bloccherà anche script inline legittimi con nonce dell'applicazione. È un conflict comune."
+- Alternative sicure: "Se non potete fare questa separazione pulita, usate l'edge in Report-Only mentre l'app è in Enforce. Monitorate per 2-4 settimane, stabilizzate, poi passate gradualmente l'edge a enforce solo su direttive che non interferiscono."
+- Wildcards edge: "Alcuni prodotti edge supportano placeholder come 'nonce-*' nelle policy. Se disponibile, usatelo. Ma verificate sempre la compatibilità cross-browser."
+- Regola d'oro finale: "Non duplicate script-src o style-src tra edge e app sulla stessa rotta. Centralizzate nell'app. Mettete all'edge solo ciò che è universale e invariante."
+- Diagramma: "Questa immagine mostra il pattern in azione: edge e app collaborano senza sovrapposizioni."
+- Transizione: "Passiamo ora all'implementazione concreta in Quarkus."
 -->
 
 ---
@@ -360,7 +431,16 @@ _class: compact
 - **Coesistenza senza conflitti**:
   - Evita di impostare `script-src`/`style-src` sia via proprietà che via filtro sulla **stessa rotta**.
   - Se vuoi tenere baseline a proprietà e dinamiche a filtro, limita le proprietà con `.path` a rotte statiche e lascia che il filtro faccia `putSingle` per sostituire l’header sull’app.
-
+<!--
+Note (relatore – Quarkus proprietà vs filtro):
+- Obiettivo: "In Quarkus abbiamo due approcci per impostare la CSP: configurazione dichiarativa via application.properties, o programmmatica via filtri JAX-RS. Quando usare l'uno o l'altro?"
+- Proprietà: "Le proprietà quarkus.http.header sono perfette per policy STATICHE. Scrivete la policy una volta nell'application.properties, vale per tutta l'applicazione o per path specifici grazie al parametro .path. Ideale per baseline: frame-ancestors none, base-uri self, upgrade-insecure-requests. Zero codice, massima chiarezza."
+- Report-Only in dev: "Usate Content-Security-Policy-Report-Only durante sviluppo e staging. Osservate le violazioni senza bloccare nulla, perfezionate la policy, poi switchate a enforce in produzione."
+- Filtro necessario: "Il filtro ContainerResponseFilter diventa necessario quando serve DINAMICITÀ: nonce generato per ogni richiesta, hash calcolati runtime, policy che variano per utente, tenant o feature flag. Il filtro vi dà accesso al contesto della richiesta, potete generare il nonce, aggiungerlo come attributo della request, e includerlo nell'header CSP."
+- Passaggio nonce: "Aspetto cruciale: il nonce deve arrivare ai template Qute o Thymeleaf. Il filtro lo imposta come request attribute o in un bean RequestScoped, il template lo recupera e lo usa nell'attributo nonce degli script."
+- Coesistenza: "Potete usare entrambi gli approcci, ma con attenzione: NON definite script-src sia in properties che nel filtro sulla stessa rotta. Rischio di conflitti. Pattern sicuro: properties per rotte statiche come /static/*, filtro per tutto il resto. Il filtro usa putSingle che sostituisce l'header, garantendo precedenza."
+- Transizione: "Vediamo esempi concreti di configurazione."
+-->
 ---
 
 ## Quarkus: esempi di configurazione CSP
@@ -382,10 +462,14 @@ Esempi `application.properties`:
 ```
 
 <!--
-Note (relatore):
-- Proprietà per baseline e path statici (asset, health, static).
-- Filtro per nonce per richiesta: mostrane l’uso nei template e attenzione a cache condivise.
-- Evita sovrapposizioni sulla stessa rotta: proprietà limitate con `.path`, filtro `putSingle`.
+Note (relatore – Esempi configurazione):
+- Contesto: "Questi sono esempi concreti di configurazione CSP in Quarkus via application.properties, con pattern diversi per sviluppo e produzione."
+- Profilo dev: "In sviluppo usiamo Report-Only su TUTTE le rotte con path=/*. La policy è minimale: default-src self, frame-ancestors none, base-uri self. Non blocchiamo nulla, raccogliamo violazioni. Questo ci permette di sviluppare liberamente mentre monitoriamo cosa sarebbe bloccato. Fondamentale per capire le dipendenze reali dell'applicazione."
+- Profilo prod: "In produzione switchiamo a Content-Security-Policy in modalità enforce, ma solo su path specifici: /static/* nell'esempio. Questo perché gli asset statici hanno policy prevedibili, mentre le rotte dinamiche potrebbero usare il filtro per nonce."
+- Strategia graduata: "Notate la strategia: iniziate con policy minimali e conservative, allargate progressivamente. Meglio bloccare troppo all'inizio e allentare con dati reali, che partire permissivi e dover restringere causando rotture."
+- Separazione ambiente: "La separazione per profilo Quarkus è potentissima: stessa codebase, policy diverse. In staging potreste avere una via di mezzo: enforce su alcune rotte, report-only su altre in testing."
+- Limiti properties: "Ricordate: questo approccio copre policy STATICHE. Per nonce o policy contestuali servirà il filtro che vediamo tra poco."
+- Transizione: "Passiamo all'implementazione di una CSP dinamica con nonce."
 -->
 
 ---
@@ -396,6 +480,16 @@ Note (relatore):
 - **Vantaggi**: blocca script inline non autorizzati, riduce whitelist di host, supporta script caricati dinamicamente.
 - **Implementazione**: via `ContainerResponseFilter` e `ContainerRequestFilter` per generare e applicare un `nonce` per richiesta.
 - **Passaggio del nonce**: opzionale, ma utile per usarlo nei template HTML (Qute/Thymeleaf).
+
+<!--
+Note (relatore – Impostare header CSP):
+- Obiettivo pratico: "Ora vediamo come implementare una CSP con nonce in Quarkus. L'obiettivo: generare un nonce unico e imprevedibile per ogni richiesta HTTP, includerlo nell'header CSP e renderlo disponibile ai template per autorizzare solo gli script legittimi."
+- Vantaggi approccio: "Perché il nonce? Blocca completamente gli script inline non autorizzati - il vettore principale degli attacchi XSS. Riduce drasticamente la whitelist di host da gestire. E con 'strict-dynamic', gli script autorizzati possono caricare dinamicamente altri script senza doverli tutti whitelistare esplicitamente."
+- Architettura: "Servono due filtri JAX-RS: un ContainerRequestFilter che genera il nonce all'inizio della richiesta e lo salva come attributo della request, e un ContainerResponseFilter che recupera quel nonce e lo inserisce nell'header Content-Security-Policy prima che la risposta venga inviata."
+- Generazione sicura: "Aspetto critico: usate SecureRandom per generare il nonce, non Math.random. Lunghezza minima 128 bit, encoding base64. Il nonce deve essere crittograficamente sicuro e imprevedibile."
+- Propagazione: "Il nonce viene salvato come request attribute con una chiave nota, ad esempio 'csp.nonce'. Il template engine - Qute o Thymeleaf - lo recupera da lì e lo inserisce negli attributi nonce degli script inline."
+- Transizione: "Vediamo il codice concreto nella prossima slide."
+-->
 
 ---
 
@@ -426,7 +520,16 @@ In Quarkus, inserisci `nonce` nel modello (Qute/Thymeleaf) recuperando il valore
 - il filtro CSP imposta l’header con il `nonce` generato;
 - il template usa `{nonce}` per autorizzare script inline legittimi.
 - il browser bloccherà il secondo script senza `nonce` o con `nonce` errato non corrispondente a quanto impostato nell’header CSP.
-
+<!--
+Note (relatore – Usare nonce nel template):
+- Esempio concreto: "Questa slide mostra esattamente come usare il nonce nei template HTML. Vedete due script: uno legittimo con attributo nonce, uno malevolo senza."
+- Script legittimo: "Il primo script ha nonce='{nonce}' - questa è sintassi Qute, ma Thymeleaf sarebbe simile con th:attr. Il template engine sostituisce {nonce} con il valore reale generato dal filtro per quella richiesta specifica. Questo script verrà eseguito perché il suo nonce corrisponde a quello dichiarato nell'header CSP."
+- Script malevolo: "Il secondo script simula un payload XSS iniettato: un alert che cerca di rubare dati. NON ha attributo nonce. Quando il browser applica la CSP, vede che script-src richiede 'nonce-xyz123', questo script non ce l'ha, quindi viene bloccato immediatamente. Nessuna esecuzione."
+- Recupero nonce: "Nel codice Quarkus, il template recupera il nonce dall'attributo della request - lo stesso che il filtro ha impostato. In Qute: {inject:request.getAttribute('csp.nonce')} o tramite bean RequestScoped che espone il nonce."
+- Importante: "Ogni script inline legittimo DEVE avere il nonce. Script esterni caricati da file .js non ne hanno bisogno, quelli sono autorizzati tramite 'self' o domini specifici in script-src."
+- Demo DevTools: "Se mostrate questa pagina e aprite la console del browser, vedrete la violazione CSP loggata per il secondo script: 'Refused to execute inline script because it violates the following Content Security Policy directive...'. È la prova che la difesa funziona."
+- Transizione: "Vediamo ora l'impatto reale di queste mitigazioni."
+-->
 ---
 
 ## Mitigazione XSS: impatto reale
@@ -435,6 +538,16 @@ In Quarkus, inserisci `nonce` nel modello (Qute/Thymeleaf) recuperando il valore
 - **Riduce DOM-based XSS**: Con `'strict-dynamic'`, script dinamici non fidati vengono bloccati.
 - **Clickjacking**: `frame-ancestors 'none'` impedisce l’incorniciamento.
 - **Limitazioni**: CSP non sostituisce sanitizzazione/escaping; è un controllo difensivo complementare.
+
+<!--
+Note (relatore – Mitigazione XSS):
+- Impatto diretto: "Parliamo dell'impatto concreto della CSP sugli attacchi reali che vediamo quotidianamente."
+- Payload inline: "Il payload XSS più classico - <script>alert(document.cookie)</script> iniettato in un form, URL o database - viene respinto immediatamente. Senza nonce o hash valido, il browser si rifiuta di eseguirlo. Fine della storia. Questo blocca la stragrande maggioranza degli attacchi XSS reflected e stored."
+- DOM-based XSS: "Gli attacchi DOM-based sono più subdoli - usano JavaScript già presente nella pagina per manipolare il DOM in modo pericoloso. Con 'strict-dynamic', anche se uno script legittimo carica dinamicamente altri script, quelli devono provenire da fonti fidate o essere caricati da script con nonce. Script non autorizzati vengono bloccati."
+- Clickjacking: "frame-ancestors 'none' impedisce completamente che la vostra pagina sia incorniciata in un iframe da altri siti. Questo previene attacchi clickjacking dove l'attaccante sovrappone elementi invisibili alla vostra UI per ingannare gli utenti."
+- Difesa in profondità: "Ma attenzione: la CSP È un layer difensivo, non una panacea. NON sostituisce la sanitizzazione corretta dell'input lato server, l'escaping nell'output, la validazione dei dati. Quelli sono fondamentali. La CSP aggiunge un secondo livello di protezione: anche se un bug di sanitizzazione passa, la CSP blocca l'esecuzione."
+- Transizione: "Vediamo ora come testare e validare la nostra implementazione CSP."
+-->
 
 ---
 
@@ -455,10 +568,15 @@ Content-Security-Policy-Report-Only: default-src 'self'; frame-ancestors 'none';
 ```
 
 <!--
-Note (relatore):
-- Suggerisci controllo header in CI (curl/Playwright) e uso di SecurityHeaders.
-- Spiega differenza `Report-To` (Reporting API) vs `report-uri` legacy.
-- Mostra un esempio di violazione raccolta e come aggiornare la policy.
+Note (relatore – Testing e strumenti):
+- Toolkit essenziale: "Il testing della CSP richiede strumenti specifici. Vediamo quelli indispensabili."
+- DevTools: "Partite sempre dalle DevTools del browser. La console mostra TUTTE le violazioni CSP con dettagli precisi: quale risorsa è stata bloccata, quale direttiva è stata violata, URL sorgente. Il pannello Security di Chrome mostra anche un riassunto della policy attiva. È il vostro primo strumento di debug."
+- CSP Evaluator: "Il CSP Evaluator di Google è fantastico: incollate la vostra policy, vi analizza per debolezze note, bypass, configurazioni pericolose. Vi dice se usate 'unsafe-inline' dove non dovreste, se i vostri nonce sono troppo corti, se ci sono wildcard rischiosi. Usatelo PRIMA di andare in produzione."
+- SecurityHeaders.com: "Per la produzione, securityheaders.com fa una scansione pubblica del vostro sito e vi assegna un rating (A+, A, B...). Controlla non solo CSP ma anche tutti gli altri security headers. Ottimo per verifiche periodiche e compliance."
+- Report-URI e Report-To: "I meccanismi di reporting sono critici: configurate un endpoint che raccolga le violazioni. Report-URI è il vecchio standard ancora supportato, Report-To è il nuovo (Reporting API). Servizi come report-uri.com offrono dashboard pronte. In produzione, monitorate questi report in tempo reale per identificare attacchi in corso o errori di configurazione."
+- Automazione CI/CD: "Integrate il testing CSP nella CI/CD: curl -I per verificare presenza dell'header, Playwright o Selenium per test E2E che controllano violazioni, OWASP ZAP per scansioni di sicurezza automatiche. La CSP deve essere verificata a ogni deploy."
+- Esempio pratico: "Il comando curl mostrato recupera gli header HTTP di un sito. Grep filtra solo la CSP. In CI potete verificare che l'header sia presente e contenga direttive obbligatorie."
+- Transizione: "Parliamo ora della strategia di rollout sicuro."
 -->
 
 ---
@@ -476,6 +594,17 @@ _class: compact
 
 ![Rollout sicuro](resources/images/rollout-secure.png)
 
+<!--
+Note (relatore – Rollout sicuro):
+- Strategia graduale: "Deployare una CSP in produzione richiede metodologia. Non si attiva enforce da un giorno all'altro su un'applicazione complessa. Ecco il processo collaudato."
+- Step 1 - Definizione: "Iniziate definendo una policy iniziale basata sulla conoscenza dell'applicazione: quali script, stili, API, CDN usate? Siate conservativi: meglio permissivi all'inizio. Configurate un endpoint per raccogliere i report - può essere interno o un servizio esterno. Attivate Content-Security-Policy-Report-Only con questa policy."
+- Step 2 - Osservazione: "Periodo di osservazione: minimo 1-2 settimane, idealmente un mese. Raccogliete TUTTE le violazioni. Analizzate: quali sono legittime (asset che avevate dimenticato)? Quali sono attacchi reali? Aggiornate la policy iterativamente per includere le sorgenti legittime. Questo è il momento di scoprire dipendenze nascoste, librerie terze, analytics, chatbot."
+- Step 3 - Integrazione: "Una volta stabilizzata la policy, integrate nonce per gli script inline critici - quelli che cambiano per richiesta. Calcolate hash per snippet inline deterministici. Testate che tutto funzioni ancora in Report-Only."
+- Step 4 - Enforce graduale: "Passate a enforce, ma gradualmente: iniziate con una rotta non critica, monitorate per giorni. Poi una sezione dell'app. Poi il traffico A/B su percentuale utenti. Mantenete i report attivi anche in enforce - servono per identificare problemi o nuovi attacchi. Se vedete falsi positivi, rollback immediato a Report-Only, fix, retry."
+- Immagine: "Il diagramma mostra visivamente questo flusso: osservazione, perfezionamento, graduale attivazione. È un processo iterativo, non un big bang."
+- Transizione: "Vediamo gli errori comuni da evitare."
+-->
+
 ---
 
 ## Errori comuni e best practice
@@ -486,9 +615,27 @@ _class: compact
 - Centralizza la gestione CSP per coerenza.
 - Documenta le sorgenti consentite e revisiona periodicamente.
 
+<!--
+Note (relatore – Errori comuni):
+- Introduzione: "Dopo anni di implementazioni CSP, questi sono gli errori che vedo ripetuti costantemente. Evitateli."
+- Wildcard pericolosi: "Usare wildcard troppo ampi come https: o * è comodo ma pericoloso. https: consente QUALSIASI script da QUALSIASI sito https - vanificando la CSP. Se proprio dovete usare https:, fatelo SOLO in combinazione con 'strict-dynamic' che limita la propagazione. Meglio: specificate i domini esatti."
+- Unsafe-inline: "'unsafe-inline' è la negazione della CSP. Consente TUTTI gli script inline, compresi quelli iniettati. È come mettere un lucchetto ma lasciare la chiave nella serratura. Usate nonce o hash. Se una libreria legacy lo richiede, isolate quella parte dell'app o sostituite la libreria."
+- Data e blob: "data: e blob: per immagini o oggetti sembrano innocui ma possono essere vettori di attacco - embedding di contenuti malevoli o exfiltration. Includeteli in img-src o object-src SOLO se strettamente necessari (es. canvas-to-image, file upload preview). Altrimenti, rimuoveteli."
+- Gestione decentralizzata: "CSP gestite in modo decentralizzato - ogni team definisce la sua, senza coordinamento - porta a policy inconsistenti, gap di sicurezza, duplicazione. Centralizzate: template comuni, ownership chiara, review process."
+- Documentazione: "Documentate PERCHÉ ogni sorgente è whitelistata. Tra 6 mesi nessuno ricorderà perché cdn.obscurevendor.com è lì. Revisionate periodicamente - trimestrale o semestrale - e rimuovete sorgenti non più usate. La policy deve evolversi con l'applicazione."
+- Transizione: "Guardiamo un'infografica riassuntiva."
+-->
+
 ---
 
 ![bg w:85% Infografica CSP](resources/images/infografica-csp_1.png)
+
+<!--
+Note (relatore – Infografica):
+- Panoramica: "Questa infografica riassume visivamente i concetti chiave che abbiamo discusso: le direttive principali, il flusso di implementazione, le best practice. È un ottimo reference da tenere a portata di mano quando lavorate sulla CSP del vostro progetto."
+- Uso pratico: "Potete usare questa immagine come poster per il team, come riferimento rapido durante code review, o come checklist per verificare di non aver dimenticato aspetti critici."
+- Transizione: "Vi lascio alcuni link utili per approfondire."
+-->
 
 ---
 
@@ -499,11 +646,26 @@ _class: compact
 - [Report-URI](https://report-uri.com/) / [W3C Reporting API](https://www.w3.org/TR/reporting/)
 - [OWASP Cheat Sheet: Content Security Policy](https://cheatsheetseries.owasp.org/cheatsheets/Content_Security_Policy_Cheat_Sheet.html)
 
+<!--
+Note (relatore – Risorse):
+- Documentazione ufficiale: "MDN Web Docs è la risorsa più completa e aggiornata per la CSP: specifiche, esempi, compatibilità browser. Tenetela nei preferiti."
+- CSP Evaluator: "Lo strumento Google che abbiamo menzionato - essenziale per validare le policy prima del deploy."
+- Report-URI: "Un servizio completo per raccogliere e analizzare i report di violazioni CSP. Hanno anche ottima documentazione."
+- OWASP Cheat Sheet: "La guida pratica OWASP copre pattern comuni, errori da evitare, esempi di policy per diversi scenari. Ottimo punto di partenza per chi inizia."
+- Comunità: "Oltre a questi link, vi consiglio di seguire i blog di sicurezza web come PortSwigger, Troy Hunt, e le security advisory dei browser per rimanere aggiornati su nuove direttive e tecniche di bypass."
+-->
+
 ---
 
 ## Q&A
 
 Domande e discussione
+
+<!--
+Note (relatore – Q&A):
+- Apertura: "Ora è il momento per le vostre domande. Che si tratti di chiarimenti sui concetti, aiuto su scenari specifici del vostro ambiente, o discussioni su casi d'uso particolari, sono qui per aiutarvi."
+- Incoraggiamento: "Non esistono domande stupide - la CSP può essere complessa e ogni contesto applicativo ha le sue sfide uniche. Condividere dubbi e soluzioni è prezioso per tutti."
+-->
 
 ---
 
@@ -513,6 +675,13 @@ Inquadrate il QR code per accedere a un breve quiz di 10 domande su Content Secu
 
 ![bg right:50% w:50% alt text](resources/images/quiz-csp_1.png)
 
+<!--
+Note (relatore – Quiz):
+- Gamification: "Prima di concludere, vi propongo una sfida: un quiz rapido di 10 domande sulla CSP per testare quanto abbiamo appreso oggi."
+- Istruzioni: "Inquadrate il QR code con il vostro smartphone o tablet - vi porterà direttamente al quiz online. Le domande coprono definizioni, direttive, best practice e scenari pratici che abbiamo discusso."
+- Motivazione: "Questo non è un esame - è un modo interattivo per consolidare le conoscenze e identificare eventuali aree dove potreste voler approfondire. Prendetevi 5 minuti, fatelo ora o dopo, e vedete come ve la cavate!"
+- Competizione amichevole: "Se volete, potete anche confrontare i risultati con i colleghi. Chi ottiene il punteggio migliore guadagna i diritti di vanteria sulla sicurezza web!"
+-->
 
 ---
 
