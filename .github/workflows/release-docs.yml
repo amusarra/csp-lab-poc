@@ -46,7 +46,7 @@ jobs:
 
       - name: Generate Release Notes
         run: |
-          cat > output/RELEASE_NOTES.md << 'EOF'
+          cat > output/RELEASE_NOTES.md << EOF
           # Content Security Policy (CSP) in Modern Web Apps - ${{ inputs.version }}
           
           ## 📄 Documentazione
