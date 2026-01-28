@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demo Multiple CSP Headers - CSP Lab</title>
+</head>
+<body>
+    <h1>Demo: Multiple CSP Headers</h1>
+    <p><a href="/">← Torna alla Home</a></p>
+
+    <h2>⚠️ Scenario: Due Header CSP</h2>
+    <p>
+        Questa pagina dimostra cosa succede quando il browser riceve <strong>più header Content-Security-Policy</strong>
+        dalla stessa risposta HTTP (applicazione + reverse proxy).
+    </p>
+
+    <h3>Header dall'Applicazione</h3>
+    <pre>Content-Security-Policy: default-src 'self'; script-src 'self'</pre>
+
+    <h3>Header dal Reverse Proxy</h3>
+    <pre>Content-Security-Policy: script-src https://cdn.example.com</pre>
+
+    <h3>🎯 Risultato: Intersezione</h3>
+    <p>
+        Il browser applica <strong>tutte</strong> le policy. Una risorsa deve soddisfarle <strong>tutte</strong> per caricare.
+    </p>
+    <pre>Policy Effettiva:
+- script-src 'self' AND script-src https://cdn.example.com
+→ Intersezione VUOTA = NESSUNO script può caricare!</pre>
+
+    <h2>🧪 Test Pratico</h2>
+
+    <h3>Test 1: Script Locale (Bloccato)</h3>
+    <pre>&lt;script src="/js/test-local.js"&gt;&lt;/script&gt;</pre>
+    <script src="/js/test-local.js"></script>
+    <p>❌ Bloccato dal secondo header (richiede cdn.example.com)</p>
+
+    <h3>Test 2: Script CDN (Bloccato)</h3>
+    <pre>&lt;script src="https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js"&gt;&lt;/script&gt;</pre>
+    <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js"></script>
+    <p>❌ Bloccato dal primo header (richiede 'self')</p>
+
+    <h3>Test 3: Script Inline (Bloccato)</h3>
+    <pre>&lt;script&gt;console.log('test');&lt;/script&gt;</pre>
+    <script>console.log('Inline script test - dovrebbe essere bloccato');</script>
+    <p>❌ Bloccato da entrambi (manca 'unsafe-inline')</p>
+
+    <h2>🔍 Come Verificare</h2>
+    <ol>
+        <li>Apri Console Browser (F12 → Console)</li>
+        <li>Cerca errori CSP per i tre script sopra</li>
+        <li>Apri Network tab e controlla gli header della risposta</li>
+    </ol>
+
+    <h2>✅ Soluzioni</h2>
+
+    <h3>1. Policy Unificata (Consigliata)</h3>
+    <p>Configura <strong>solo app O solo proxy</strong>:</p>
+    <pre>Content-Security-Policy: default-src 'self'; script-src 'self' https://cdn.example.com</pre>
+
+    <h3>2. Policy Complementari</h3>
+    <p>Se proprio necessari entrambi gli header, usa direttive diverse:</p>
+    <pre>App:   default-src 'self'; script-src 'self' https://cdn.example.com
+Proxy: frame-ancestors 'none'; base-uri 'self'</pre>
+
+    <h3>3. Disabilita App</h3>
+    <p>In <code>application.properties</code>:</p>
+    <pre>csp.filter.enabled=false</pre>
+
+    <hr>
+    <p><strong>Riferimento:</strong> <a href="https://www.w3.org/TR/CSP3/#multiple-policies" target="_blank">W3C CSP Level 3</a></p>
+    <p><em>"When more than one policy is present [...] the intersection of the policies is applied."</em></p>
+
+    <p><a href="/">Torna alla Home</a></p>
+</body>
+</html>
