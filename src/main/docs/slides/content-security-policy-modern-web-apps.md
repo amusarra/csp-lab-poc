@@ -507,6 +507,15 @@ Domande e discussione
 
 ---
 
+## Proviamo a vedere cosa abbiamo imparato?
+
+Inquadrate il QR code per accedere a un breve quiz di 10 domande su Content Security Policy (CSP) e testate le vostre conoscenze!
+
+![bg right:50% w:50% alt text](resources/images/quiz-csp_1.png)
+
+
+---
+
 ![bg right:40% w:300](https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=https://github.com/amusarra/csp-lab-poc)
 
 ## Grazie per l'attenzione! 🙏
