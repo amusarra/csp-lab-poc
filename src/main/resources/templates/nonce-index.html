@@ -24,7 +24,7 @@
 <h1>Security Demo con Qute</h1>
 <p>Il Nonce generato per questa sessione è: <strong>{nonce}</strong></p>
 
-<!-- Script legittimo con nonce - dovrebbe essere eseguito quando la policy lo permette -->
+<!-- 1. Script legittimo con nonce - dovrebbe essere eseguito quando la policy lo permette -->
 <script nonce="{nonce}">
     window.addEventListener('load', function () {
         // eseguiamo dopo il paint per essere sicuri che il DOM sia renderizzato
@@ -36,7 +36,19 @@
     });
 </script>
 
-<!-- Script senza nonce: in presenza di una CSP corretta questo verrà bloccato -->
+<!-- 2. Questo script è autorizzato dal nonce -->
+<script nonce="{nonce}">
+    var s = document.createElement('script');
+    // 3. Questo script esterno caricherà perché creato dinamicamente,
+    // anche se il dominio non è esplicitamente in whitelist.
+    s.src = 'https://othercdn.example.net/dependency.js';
+    document.head.appendChild(s);
+
+    // 4. Questo invece fallirà perché document.write è "parser-inserted"
+    document.write('<script src="/blocked.js"></scr' + 'ipt>');
+</script>
+
+<!-- 3. Script senza nonce: in presenza di una CSP corretta questo verrà bloccato -->
 <script>
     // script dimostrativo che dovrebbe essere bloccato da CSP se policy non permette 'unsafe-inline'
     alert("XSS Attacco! Se vedi questo, la CSP non sta bloccando gli script inline non autorizzati.");
