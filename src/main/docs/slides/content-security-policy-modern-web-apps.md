@@ -3,7 +3,7 @@ title: 'Content Security Policy (CSP) in Modern Web Apps'
 description: 'Introduzione a Content Security Policy (CSP) per la difesa XSS in applicazioni web moderne, con PoC in Quarkus.'
 author: 'Antonio Musarra - Software Engineer @ Sogei'
 header: 'Content Security Policy in Modern Web Apps'
-footer: 'Antonio Musarra @ Sogei | Sicurezza Applicativa & DevSecOps | Gennaio 2026 v1.0.1'
+footer: 'Antonio Musarra @ Sogei | Sicurezza Applicativa & DevSecOps | Gennaio 2026 v1.0.0'
 keywords: 'Content Security Policy, CSP, XSS, Quarkus, Web Security, Nonce, Hash, Strict-Dynamic'
 lang: it
 marp: true
