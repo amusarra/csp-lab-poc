@@ -1,0 +1,104 @@
+name: Release Documentation
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g., v1.0.0)'
+        required: true
+        type: string
+      prerelease:
+        description: 'Mark as pre-release'
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+jobs:
+  release-documentation:
+    name: Release Documentation PDF
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Marp CLI
+        run: npm install -g @marp-team/marp-cli
+
+      - name: Create output directory
+        run: mkdir -p output
+
+      - name: Generate PDF
+        run: |
+          marp src/main/docs/slides/content-security-policy-modern-web-apps.md \
+            --html \
+            --allow-local-files \
+            --pdf \
+            -o output/content-security-policy-modern-web-apps-${{ inputs.version }}.pdf
+
+      - name: Generate Release Notes
+        run: |
+          cat > output/RELEASE_NOTES.md << 'EOF'
+          # Content Security Policy (CSP) in Modern Web Apps - ${{ inputs.version }}
+          
+          ## 📄 Documentazione
+          
+          Questa release contiene la documentazione in formato PDF della presentazione:
+          **Content Security Policy (CSP) in Modern Web Apps - Difesa XSS e PoC con Quarkus**
+          
+          ### 📥 Download
+          
+          - [content-security-policy-modern-web-apps-${{ inputs.version }}.pdf](https://github.com/${{ github.repository }}/releases/download/${{ inputs.version }}/content-security-policy-modern-web-apps-${{ inputs.version }}.pdf)
+          
+          ### 📊 Contenuti
+          
+          - Introduzione a Content Security Policy (CSP)
+          - Difesa dagli attacchi XSS
+          - Direttive CSP e best practices
+          - Implementazione con Quarkus
+          - Esempi pratici e laboratorio
+          
+          ### 📅 Data di rilascio
+          
+          $(date +"%d/%m/%Y")
+          
+          ---
+          
+          **Autore:** Antonio Musarra - Software Engineer @ Sogei  
+          **Repository:** https://github.com/${{ github.repository }}
+          EOF
+
+      - name: Create Git Tag
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a ${{ inputs.version }} -m "Release documentation ${{ inputs.version }}"
+          git push origin ${{ inputs.version }}
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ inputs.version }}
+          name: Documentation Release ${{ inputs.version }}
+          body_path: output/RELEASE_NOTES.md
+          draft: false
+          prerelease: ${{ inputs.prerelease }}
+          files: |
+            output/content-security-policy-modern-web-apps-${{ inputs.version }}.pdf
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload PDF artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: documentation-pdf-${{ inputs.version }}
+          path: output/content-security-policy-modern-web-apps-${{ inputs.version }}.pdf
+          retention-days: 90
