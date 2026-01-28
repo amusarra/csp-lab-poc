@@ -37,6 +37,7 @@ services:
       - "8080:80"
     environment:
       - CSP_VALUE=default-src 'self'; script-src 'self'; object-src 'none';
+      #- CSP_VALUE=script-src https://cdn.example.com
       # Importante: diciamo a Nginx di sostituire SOLO la nostra variabile
       - NGINX_ENVSUBST_FILTER=CSP_VALUE
     volumes:
