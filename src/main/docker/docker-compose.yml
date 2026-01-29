@@ -42,7 +42,7 @@ services:
       - NGINX_ENVSUBST_FILTER=CSP_VALUE
     volumes:
       # 1. Montiamo il template (assicurarsi che il nome file locale sia questo)
-      - ./nginx/templates/app-proxy.conf.template:/etc/nginx/templates/app-proxy.conf.template:ro
+      - ./nginx/templates/app-proxy.conf.template:/etc/nginx/templates/app-proxy.conf.template:ro,z
 
       # 2. Montiamo un volume vuoto sulla cartella conf.d
       # Questo evita l'uso del default.conf
